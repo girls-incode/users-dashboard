@@ -1,0 +1,179 @@
+@import './_mixins.scss';
+@import './_variables.scss';
+
+body,
+html {
+  font-family: $font-family;
+  font-size: $font-size-normal;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: var(--color-text-light);
+  text-rendering: geometricPrecision;
+  -webkit-backface-visibility: hidden;
+}
+
+/* TEXT */
+
+.aw-2-txt--l,
+.aw-2-txt--body-large {
+  @include font-size(xl);
+  font-weight: $font-weight-normal;
+}
+
+p,
+.aw-2-txt--m,
+.aw-2-txt--body-regular {
+  @include font-size(m);
+  font-weight: $font-weight-normal;
+}
+
+.aw-2-txt--s,
+.aw-2-txt--body-small {
+  @include font-size(s);
+  font-weight: $font-weight-normal;
+}
+
+.aw-2-txt--xs,
+.aw-2-txt--body-tiny {
+  @include font-size(xs);
+  font-weight: $font-weight-normal;
+}
+
+/* TITLEs */
+h1,
+h2,
+h3,
+.aw-2-txt--h1,
+.aw-2-txt--h2,
+.aw-2-txt--h3 {
+  margin: 0;
+  color: var(--color-text-normal);
+}
+
+h1,
+.aw-2-txt--h1 {
+  @include font-size(xxl);
+  font-weight: $font-weight-bold;
+}
+
+h2,
+.aw-2-txt--h2 {
+  @include font-size(xl);
+  font-weight: $font-weight-bold;
+}
+
+h3,
+.aw-2-txt--h3 {
+  @include font-size(l);
+  font-weight: $font-weight-bold;
+}
+
+h4,
+.aw-2-txt--h4 {
+  @include font-size(m);
+  font-weight: $font-weight-semi;
+}
+
+/* STYLING */
+strong,
+b,
+.aw-2-txt--bold {
+  font-weight: $font-weight-semi;
+}
+
+.aw-2-txt--bolder {
+  font-weight: $font-weight-bold;
+}
+
+em,
+.aw-2-txt--italic {
+  font-style: italic;
+}
+
+.aw-2-txt--no-wrap {
+  white-space: nowrap;
+}
+
+.aw-2-txt--break {
+  word-break: break-word;
+}
+
+.aw-2-txt--break-all {
+  word-break: break-all;
+}
+
+.aw-2-txt--truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ALIGNMENT */
+.aw-2-txt--left {
+  text-align: left;
+}
+
+.aw-2-txt--right {
+  text-align: right;
+}
+
+.aw-2-txt--center {
+  text-align: center;
+}
+
+.aw-2-txt--text-top {
+  vertical-align: text-top;
+}
+
+.aw-2-txt-middle {
+  vertical-align: middle;
+}
+
+.aw-2-txt--line-height-0 {
+  line-height: 0;
+}
+
+/* COLORS */
+@each $color, $value in $gray-colors {
+  .aw-2-txt--#{$color} {
+    color: $value !important;
+  }
+}
+
+@each $color, $value in $text-colors {
+  .aw-2-txt--#{$color} {
+    color: $value !important;
+  }
+}
+
+/* EMPTY MESSAGES */
+.aw-2-txt--empty {
+  text-align: center;
+  @include font-size(s);
+  color: $color-steel;
+  font-style: italic;
+}
+
+/* LINKS */
+a,
+a:visited,
+a:link .aw-2-txt--link {
+  color: $color-blue-900;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover,
+  &:active {
+    text-decoration: underline;
+  }
+}
+
+.aw-2-txt--link-purple {
+  color: $color-purple-900;
+  cursor: pointer;
+
+  &:hover,
+  &:active {
+    text-decoration: underline;
+  }
+}

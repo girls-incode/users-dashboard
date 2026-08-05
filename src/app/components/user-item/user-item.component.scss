@@ -1,0 +1,49 @@
+@use 'ease/ease-import.scss' as *;
+
+:host {
+  .user-item {
+    align-items: center;
+    border-bottom: 1px solid $color-fog;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: nowrap;
+    height: 60px;
+    padding: 12px;
+    color: $color-night;
+
+    &__image {
+      border-radius: 20%;
+      height: 40px;
+      width: 40px;
+    }
+
+    &__name,
+    &__email,
+    &__phone {
+      margin: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    &__name {
+      flex: 1;
+      min-width: 100px;
+    }
+
+    &__email {
+      width: 220px;
+    }
+
+    &__phone {
+      width: 110px;
+    }
+
+    &__nat {
+      margin-left: 12px;
+      text-align: right;
+      width: 80px;
+    }
+  }
+}

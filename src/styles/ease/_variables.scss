@@ -1,0 +1,354 @@
+/*
+ * COLORS
+ */
+
+// Light mode
+$gray-light-0: #fff !default;
+$gray-light-25: #f9fcff !default;
+$gray-light-50: #f2f9ff !default;
+$gray-light-100: #ebf5ff !default;
+$gray-light-200: #dbedff !default;
+$gray-light-300: #c8dcf4 !default;
+$gray-light-400: #a1bbe5 !default;
+$gray-light-500: #5576aa !default;
+$gray-light-600: #335180 !default;
+$gray-light-700: #1f3b66 !default;
+$gray-light-800: #0f284d !default;
+$gray-light-900: #081934 !default;
+
+// Dark-light auto adjusted
+$gray-0: var(--color-white) !default;
+$gray-25: var(--color-smoke) !default;
+$gray-50: var(--color-ice) !default;
+$gray-100: var(--color-sky) !default;
+$gray-200: var(--color-fog) !default;
+$gray-300: var(--color-dust) !default;
+$gray-400: var(--color-light-steel) !default;
+$gray-500: var(--color-steel) !default;
+$gray-600: var(--color-slate) !default;
+$gray-700: var(--color-midnight) !default;
+$gray-800: var(--color-asphalt) !default;
+$gray-900: var(--color-night) !default;
+
+// Dark-light auto adjusted – named
+$color-white: var(--color-white) !default;
+$color-smoke: var(--color-smoke) !default;
+$color-ice: var(--color-ice) !default;
+$color-sky: var(--color-sky) !default;
+$color-fog: var(--color-fog) !default;
+$color-dust: var(--color-dust) !default;
+$color-light-steel: var(--color-light-steel) !default;
+$color-steel: var(--color-steel) !default;
+$color-slate: var(--color-slate) !default;
+$color-midnight: var(--color-midnight) !default;
+$color-asphalt: var(--color-asphalt) !default;
+$color-night: var(--color-night) !default;
+
+$gray-colors: (
+  'white': $color-white,
+  'smoke': $color-smoke,
+  'ice': $color-ice,
+  'sky': $color-sky,
+  'fog': $color-fog,
+  'dust': $color-dust,
+  'light-steel': $color-light-steel,
+  'steel': $color-steel,
+  'slate': $color-slate,
+  'midnight': $color-midnight,
+  'asphalt': $color-asphalt,
+  'night': $color-night
+) !default;
+
+// Main colors
+$color-red: #ff4398 !default;
+$color-red-900: #ff1a82 !default;
+$color-red-700: #ff4398 !default;
+$color-red-500: #ff80b9 !default;
+$color-red-300: #ffb2d5 !default;
+$color-red-100: #ffdbec !default;
+$color-red-50: #ffe5f1 !default;
+$color-red-o-50: rgba(#ff4398, 0.1) !default;
+$color-red-o-100: rgba(#ff4398, 0.2) !default;
+$color-red-o-300: rgba(#ff4398, 0.4) !default;
+$color-red-o-500: rgba(#ff4398, 0.6) !default;
+
+$color-yellow: #ffd466 !default;
+$color-yellow-1000: #3d2b00 !default;
+$color-yellow-900: #ffba1a !default;
+$color-yellow-700: #ffd466 !default;
+$color-yellow-500: #ffe5a3 !default;
+$color-yellow-300: #ffeec2 !default;
+$color-yellow-100: #fff6e0 !default;
+$color-yellow-50: #fffbf0 !default;
+$color-yellow-o-50: rgba(#ffd466, 0.1) !default;
+$color-yellow-o-100: rgba(#ffd466, 0.2) !default;
+$color-yellow-o-300: rgba(#ffd466, 0.4) !default;
+$color-yellow-o-500: rgba(#ffd466, 0.6) !default;
+
+$color-green: #45e59f !default;
+$color-green-900: #16d982 !default;
+$color-green-700: #45e59f !default;
+$color-green-500: #8fefc5 !default;
+$color-green-300: #b5f5d9 !default;
+$color-green-100: #dafaec !default;
+$color-green-50: #ecfcf5 !default;
+$color-green-o-50: rgba(#45e59f, 0.1) !default;
+$color-green-o-100: rgba(#45e59f, 0.2) !default;
+$color-green-o-300: rgba(#45e59f, 0.4) !default;
+$color-green-o-500: rgba(#45e59f, 0.6) !default;
+
+$color-blue: #4d9aff !default;
+$color-blue-900: #006dfa !default;
+$color-blue-700: #4d9aff !default;
+$color-blue-500: #94c2ff !default;
+$color-blue-300: #b8d7ff !default;
+$color-blue-100: #dbebff !default;
+$color-blue-50: #edf5ff !default;
+$color-blue-o-50: rgba(#4d9aff, 0.1) !default;
+$color-blue-o-100: rgba(#4d9aff, 0.2) !default;
+$color-blue-o-300: rgba(#4d9aff, 0.4) !default;
+$color-blue-o-500: rgba(#4d9aff, 0.6) !default;
+
+$color-purple: #a157f6 !default;
+$color-purple-900: #7d1ded !default;
+$color-purple-700: #a157f6 !default;
+$color-purple-500: #b982f8 !default;
+$color-purple-300: #d9bcfb !default;
+$color-purple-100: #ecddfd !default;
+$color-purple-50: #f6eefe !default;
+$color-purple-o-50: rgba(#a157f6, 0.1) !default;
+$color-purple-o-100: rgba(#a157f6, 0.2) !default;
+$color-purple-o-300: rgba(#a157f6, 0.4) !default;
+$color-purple-o-500: rgba(#a157f6, 0.6) !default;
+
+// Secondary colors
+$color-orange: #ff7666 !default;
+$color-orange-900: #ff4933 !default;
+$color-orange-700: #ff7666 !default;
+$color-orange-500: #ffada3 !default;
+$color-orange-300: #ffc8c2 !default;
+$color-orange-100: #ffe4e0 !default;
+$color-orange-50: #fff1f0 !default;
+$color-orange-o-50: rgba(#ff7666, 0.1) !default;
+$color-orange-o-100: rgba(#ff7666, 0.2) !default;
+$color-orange-o-300: rgba(#ff7666, 0.4) !default;
+$color-orange-o-500: rgba(#ff7666, 0.6) !default;
+
+$color-cyan: #5ce2f1 !default;
+$color-cyan-900: #0bd0e5 !default;
+$color-cyan-700: #5ce2f1 !default;
+$color-cyan-500: #9deef7 !default;
+$color-cyan-300: #bef3f9 !default;
+$color-cyan-100: #def9fc !default;
+$color-cyan-50: #effcfe !default;
+$color-cyan-o-50: rgba(#5ce2f1, 0.1) !default;
+$color-cyan-o-100: rgba(#5ce2f1, 0.2) !default;
+$color-cyan-o-300: rgba(#5ce2f1, 0.4) !default;
+$color-cyan-o-500: rgba(#5ce2f1, 0.6) !default;
+
+$color-indigo: #9373ff !default;
+$color-indigo-900: #6438f5 !default;
+$color-indigo-700: #9373ff !default;
+$color-indigo-500: #beabff !default;
+$color-indigo-300: #d4c7ff !default;
+$color-indigo-100: #e9e3ff !default;
+$color-indigo-50: #f4f1ff !default;
+$color-indigo-o-50: rgba(#9373ff, 0.1) !default;
+$color-indigo-o-100: rgba(#9373ff, 0.2) !default;
+$color-indigo-o-300: rgba(#9373ff, 0.4) !default;
+$color-indigo-o-500: rgba(#9373ff, 0.6) !default;
+
+$color-teal: #9bf2d2 !default;
+$color-teal-900: #67cba6 !default;
+$color-teal-700: #9bf2d2 !default;
+$color-teal-o-50: rgba(#9bf2d2, 0.1) !default;
+$color-teal-o-100: rgba(#9bf2d2, 0.2) !default;
+$color-teal-o-300: rgba(#9bf2d2, 0.4) !default;
+
+$text-colors: (
+  'red': $color-red-900,
+  'green': $color-green-900,
+  'blue': $color-blue-900,
+  'yellow': $color-yellow-900,
+  'purple': $color-purple-900,
+  'orange': $color-orange-900,
+  'cyan': $color-cyan-900,
+  'indigo': $color-indigo-900,
+  'teal': $color-teal-900
+) !default;
+
+$border-colors: (
+  'red': $color-red-700,
+  'green': $color-green-700,
+  'blue': $color-blue-700,
+  'yellow': $color-yellow-700,
+  'purple': $color-purple-700,
+  'orange': $color-orange-700,
+  'cyan': $color-cyan-700,
+  'indigo': $color-indigo-700,
+  'teal': $color-teal-700,
+  'white': $color-white,
+  'smoke': $color-smoke,
+  'ice': $color-ice,
+  'sky': $color-sky,
+  'fog': $color-fog,
+  'dust': $color-dust,
+  'light-steel': $color-light-steel,
+  'steel': $color-steel,
+  'slate': $color-slate,
+  'midnight': $color-midnight,
+  'asphalt': $color-asphalt,
+  'night': $color-night
+) !default;
+
+$bg-colors: (
+  'red': $color-red-o-50,
+  'green': $color-green-o-50,
+  'blue': $color-blue-o-50,
+  'yellow': $color-yellow-o-50,
+  'purple': $color-purple-o-50,
+  'orange': $color-orange-o-50,
+  'cyan': $color-cyan-o-50,
+  'indigo': $color-indigo-o-50,
+  'teal': $color-teal-o-50,
+  'white': $color-white,
+  'smoke': $color-smoke,
+  'ice': $color-ice,
+  'sky': $color-sky,
+  'fog': $color-fog,
+  'dust': $color-dust,
+  'light-steel': $color-light-steel,
+  'steel': $color-steel,
+  'slate': $color-slate,
+  'midnight': $color-midnight,
+  'asphalt': $color-asphalt,
+  'night': $color-night
+) !default;
+
+/*
+ * GRADIENTS
+ */
+
+$gradient-purple: linear-gradient(135deg, #e0d7fe 0%, #efdaf6 53%, #fdf3e9 100%);
+$gradient-onboarding: linear-gradient(
+    135deg,
+    rgba(190, 171, 255, 1) 0%,
+    rgba(199, 154, 250, 1) 53%,
+    rgba(255, 240, 203, 1) 100%
+  ),
+  linear-gradient(45deg, rgba(218, 117, 253, 0) 0%, rgba(218, 117, 253, 0.5) 100%),
+  radial-gradient(rgba(255, 240, 200, 0.5), rgba(255, 229, 163, 0));
+
+/*
+ * FONT SIZES
+ */
+
+$font-family: 'Sofia Pro', sofia-pro, sans-serif !default;
+
+$font-size-normal: 14px !default;
+$line-height-normal: 20px !default;
+$font-size-small: 12px !default;
+$line-height-small: 16px !default;
+$font-size-tiny: 11px !default;
+$line-height-tiny: 14px !default;
+$font-size-h1: 24px !default;
+$line-height-h1: 32px !default;
+$font-size-h2: 18px !default;
+$line-height-h2: 24px !default;
+$font-size-h3: 16px !default;
+$line-height-h3: 20px !default;
+
+$font-weight-normal: 600 !default;
+$font-weight-semi: 700 !default;
+$font-weight-bold: 900 !default;
+
+$text-color-dark: var(--color-night);
+$text-color-normal: var(--color-steel);
+$text-color-light: var(--color-steel);
+$text-color-accent: $color-blue-900;
+$text-color-invert: $color-white;
+
+/*
+ * RESPONSIVE BREAKPOINTS
+ */
+
+$xs: 320px !default;
+$s: 540px !default;
+$m: 810px !default;
+$l: 1080px !default;
+$xl: 1280px !default;
+$breakpoints: (
+  xs: $xs,
+  s: $s,
+  m: $m,
+  l: $l,
+  xl: $xl
+) !default;
+
+/*
+ * SPACINGS
+ */
+$spacing-xxs: 2px !default;
+$spacing-xs: 4px !default;
+$spacing-s: 8px !default;
+$spacing-m: 12px !default;
+$spacing-l: 16px !default;
+$spacing-xl: 20px !default;
+$spacing-xxl: 24px !default;
+$spacing-xxxl: 32px !default;
+$spacing-xxxxl: 40px !default;
+
+$spacings: (
+  0: 0,
+  xxs: $spacing-xxs,
+  xs: $spacing-xs,
+  s: $spacing-s,
+  m: $spacing-m,
+  l: $spacing-l,
+  xl: $spacing-xl,
+  xxl: $spacing-xxl,
+  xxxl: $spacing-xxxl,
+  xxxxl: $spacing-xxxxl
+) !default;
+
+$mobile-content-spacing: 10px !default;
+
+/*
+ * ICONS
+ */
+$icon-size-xs: 12px !default;
+$icon-size-s: 16px !default;
+$icon-size-m: 20px !default;
+$icon-size-l: 24px !default;
+$icon-size-xl: 32px !default;
+$icon-size-xxl: 40px !default;
+
+$icon-sizes: (
+  xs: $icon-size-xs,
+  s: $icon-size-s,
+  m: $icon-size-m,
+  l: $icon-size-l,
+  xl: $icon-size-xl,
+  xxl: $icon-size-xxl
+) !default;
+
+/*
+ * BORDERS
+ */
+$border-size-xs: 8px !default;
+$border-size-s: 10px !default;
+$border-size-m: 12px !default;
+$border-size-l: 14px !default;
+$border-size-xl: 16px !default;
+$border-size-xxl: 18px !default;
+$border-size-xxxl: 24px !default;
+
+$border-sizes: (
+  xs: $border-size-xs,
+  s: $border-size-s,
+  m: $border-size-m,
+  l: $border-size-l,
+  xl: $border-size-xl,
+  xxl: $border-size-xxl,
+  xxxl: $border-size-xxxl
+) !default;

@@ -1,0 +1,8 @@
+/*
+ * This file doesn't include any selectors and won't create any lines of styles when importing.
+ * But it includes all styles (mixins and variables), which can be imported by other components.
+ * Only this file should be imported by components!
+ */
+
+@import './_mixins.scss';
+@import './_variables.scss';

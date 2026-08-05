@@ -1,0 +1,254 @@
+@import './_variables.scss';
+
+/*
+ * SHADOWS
+ */
+
+@mixin shadow($size, $color: var(--color-shadow-rgb)) {
+  @if ($size == xs) {
+    box-shadow: 0px 2px 2px (rgba($color, 0.05)), 0px 3px 6px (rgba($color, 0.04)), 0px 2px 3px (rgba($color, 0.03)),
+      0px 1px 1px (rgba($color, 0.01)), 0px -1px 4px (rgba($color, 0.03));
+  } @else if ($size == s) {
+    box-shadow: 0 -2px 10px 0 (rgba($color, 0.03)), 0 0 1px 0 (rgba($color, var(--shadow-opacity-1))),
+      0 1px 1px 0 (rgba($color, var(--shadow-opacity-1))), 0 1px 2px 0 (rgba($color, var(--shadow-opacity-2))),
+      0 3px 4px 0 (rgba($color, var(--shadow-opacity-3))), 0 5px 8px 0 (rgba($color, var(--shadow-opacity-4))),
+      0 10px 15px 0 (rgba($color, var(--shadow-opacity-5)));
+  } @else if($size == m) {
+    box-shadow: 0 -2px 10px 0 (rgba($color, 0.03)), 0 0 1px 0 (rgba($color, var(--shadow-opacity-1))),
+      0 1px 2px 0 (rgba($color, var(--shadow-opacity-1))), 0 2px 4px 0 (rgba($color, var(--shadow-opacity-2))),
+      0 4px 5px 0 (rgba($color, var(--shadow-opacity-3))), 0 7px 10px 0 (rgba($color, var(--shadow-opacity-4))),
+      0 15px 20px 0 (rgba($color, var(--shadow-opacity-5)));
+  } @else if($size == l) {
+    box-shadow: 0 -1px 10px 0 (rgba($color, 0.03)), 0 1px 2px 0 (rgba($color, var(--shadow-opacity-1))),
+      0 2px 4px 0 (rgba($color, var(--shadow-opacity-1))), 0 4px 8px 0 (rgba($color, var(--shadow-opacity-2))),
+      0 8px 16px 0 (rgba($color, var(--shadow-opacity-3))), 0 16px 32px 0 (rgba($color, var(--shadow-opacity-4))),
+      0 32px 64px 0 (rgba($color, var(--shadow-opacity-5)));
+  } @else if($size == xl) {
+    box-shadow: 0 -2px 10px 0 (rgba($color, 0.05)), 0 3px 2px 0 (rgba($color, var(--shadow-opacity-1))),
+      0 6px 5px 0 (rgba($color, var(--shadow-opacity-1))), 0 12px 10px 0 (rgba($color, var(--shadow-opacity-2))),
+      0 25px 20px 0 (rgba($color, var(--shadow-opacity-3))), 0 50px 40px 0 (rgba($color, var(--shadow-opacity-4))),
+      0 100px 80px 0 (rgba($color, var(--shadow-opacity-5)));
+  }
+}
+
+/*
+ * TEXT SIZES
+ */
+
+@mixin font-size($size) {
+  @if ($size == xs) {
+    font-size: $font-size-tiny;
+    line-height: $line-height-tiny;
+  } @else if ($size == s) {
+    font-size: $font-size-small;
+    line-height: $line-height-small;
+  } @else if ($size == m) {
+    font-size: $font-size-normal;
+    line-height: $line-height-normal;
+  } @else if ($size == l) {
+    font-size: $font-size-h3;
+    line-height: $line-height-h3;
+  } @else if ($size == xl) {
+    font-size: $font-size-h2;
+    line-height: $line-height-h2;
+  } @else if ($size == xxl) {
+    font-size: $font-size-h1;
+    line-height: $line-height-h1;
+  }
+}
+
+/*
+ * BORDER RADIUS
+ */
+
+/*
+ * SPACINGS
+ */
+@mixin spacer($size) {
+  @if ($size == xs) {
+    font-size: 11px;
+  } @else if ($size == s) {
+    font-size: 12px;
+  } @else if ($size == m) {
+    font-size: 14px;
+  } @else if ($size == l) {
+    font-size: 11px;
+  } @else if ($size == xl) {
+    font-size: 11px;
+  } @else if ($size == xxl) {
+    font-size: 11px;
+  }
+}
+
+/*
+ * RESPONSIVE
+ */
+
+// Name of the next breakpoint, or null for the last breakpoint.
+@function breakpoint-next($name, $breakpoints: $breakpoints, $breakpoint-names: map-keys($breakpoints)) {
+  $n: index($breakpoint-names, $name);
+  @return if($n < length($breakpoint-names), nth($breakpoint-names, $n + 1), null);
+}
+
+// Maximum breakpoint width. Null for the largest (last) breakpoint.
+@function breakpoint-max($name, $breakpoints: $breakpoints) {
+  $next: breakpoint-next($name, $breakpoints);
+  @return if($next, breakpoint-min($next, $breakpoints) * 0.999, null);
+}
+
+// Minimum breakpoint width. Null for the smallest (first) breakpoint.
+@function breakpoint-min($name, $breakpoints: $breakpoints) {
+  $min: map-get($breakpoints, $name);
+  @return if($min != 0, $min, null);
+}
+
+// Returns a blank string if smallest breakpoint, otherwise returns the name with a dash infront.
+@function breakpoint-infix($name, $breakpoints: $breakpoints) {
+  @return if(breakpoint-min($name, $breakpoints) == null, '', '-#{$name}');
+}
+
+// Media of at least the minimum breakpoint width. No query for the smallest breakpoint.
+// Makes the @content apply to the given breakpoint and wider.
+@mixin media-breakpoint-up($name, $breakpoints: $breakpoints) {
+  $min: breakpoint-min($name, $breakpoints);
+  @if $min {
+    @media (min-width: $min) {
+      @content;
+    }
+  } @else {
+    @content;
+  }
+}
+
+// Media of at most the maximum breakpoint width. No query for the largest breakpoint.
+// Makes the @content apply to the given breakpoint and narrower.
+@mixin media-breakpoint-down($name, $breakpoints: $breakpoints) {
+  $max: breakpoint-max($name, $breakpoints);
+  @if $max {
+    @media (max-width: $max) {
+      @content;
+    }
+  } @else {
+    @content;
+  }
+}
+
+// Media that spans multiple breakpoint widths.
+// Makes the @content apply between the min and max breakpoints
+@mixin media-breakpoint-between($lower, $upper, $breakpoints: $breakpoints) {
+  @include media-breakpoint-up($lower, $breakpoints) {
+    @include media-breakpoint-down($upper, $breakpoints) {
+      @content;
+    }
+  }
+}
+
+// Media between the breakpoint's minimum and maximum widths.
+// No minimum for the smallest breakpoint, and no maximum for the largest one.
+// Makes the @content apply only to the given breakpoint, not viewports any wider or narrower.
+@mixin media-breakpoint-only($name, $breakpoints: $breakpoints) {
+  @include media-breakpoint-between($name, $name, $breakpoints) {
+    @content;
+  }
+}
+
+/*
+ * COMMON STYLING PACKAGES
+ */
+
+@mixin hover-row() {
+  background: $color-blue-o-50;
+  color: $color-blue-900;
+}
+
+@mixin drop-preview() {
+  border-width: 2px;
+  border-style: dashed;
+  border-color: $color-light-steel;
+}
+
+@mixin ghost-item() {
+  border-width: 2px;
+  border-style: dashed;
+  border-color: $color-light-steel;
+
+  &:hover {
+    border: transparent;
+    background: $color-blue-o-50;
+    cursor: pointer;
+  }
+  &:active {
+    background: $color-blue-o-100;
+  }
+}
+
+@mixin purple-gradient() {
+  background: $gradient-purple;
+}
+
+@mixin onboarding-gradient() {
+  background: $gradient-onboarding;
+}
+
+@mixin gradient-border(
+  $gradient: $gradient-purple,
+  $border-width: $spacing-xs,
+  $border-radius-inner: $border-size-xxxl,
+  $border-radius-outer: 28px
+) {
+  border-radius: $border-radius-outer;
+
+  &::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -$border-width;
+    left: -$border-width;
+    right: -$border-width;
+    bottom: -$border-width;
+    border-radius: $border-radius-outer;
+    z-index: -1;
+    background: $gradient;
+  }
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: $color-white;
+    border-radius: $border-radius-inner;
+    z-index: -1;
+  }
+}
+
+@mixin color-box($color) {
+  @if ($color == 'red') {
+    color: $color-red-900;
+    background: $color-red-o-50;
+  } @else if ($color == 'yellow') {
+    color: $color-yellow-900;
+    background: $color-yellow-o-50;
+  } @else if ($color == 'blue') {
+    color: $color-blue-900;
+    background: $color-blue-o-50;
+  } @else if ($color == 'purple') {
+    color: $color-purple-900;
+    background: $color-purple-o-50;
+  } @else if ($color == 'green') {
+    color: $color-green-900;
+    background: $color-green-o-50;
+  } @else if ($color == 'orange') {
+    color: $color-orange-900;
+    background: $color-orange-o-50;
+  } @else if ($color == 'cyan') {
+    color: $color-cyan-900;
+    background: $color-cyan-o-50;
+  } @else if ($color == 'indigo') {
+    color: $color-indigo-900;
+    background: $color-indigo-o-50;
+  }
+}

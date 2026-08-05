@@ -1,0 +1,66 @@
+@import './_mixins.scss';
+
+/*
+ * CSS VARIABLES FOR LIGHT MODE
+ */
+:root {
+  --color-white: #{$gray-light-0};
+  --color-smoke: #{$gray-light-25};
+  --color-ice: #{$gray-light-50};
+  --color-sky: #{$gray-light-100};
+  --color-fog: #{$gray-light-200};
+  --color-dust: #{$gray-light-300};
+  --color-light-steel: #{$gray-light-400};
+  --color-steel: #{$gray-light-500};
+  --color-slate: #{$gray-light-600};
+  --color-midnight: #{$gray-light-700};
+  --color-asphalt: #{$gray-light-800};
+  --color-night: #{$gray-light-900};
+
+  --color-white-rgb: 255, 255, 255;
+  --color-ice-rgb: 242, 249, 255;
+  --color-sky-rgb: 235, 245, 255;
+  --color-fog-rgb: 219, 237, 255;
+  --color-dust-rgb: 200, 220, 244;
+  --color-steel-rgb: 85, 118, 170;
+
+  --color-shadow-rgb: 15, 40, 77;
+
+  --color-icon: var(--color-steel);
+  --color-border: var(--color-fog);
+  --color-fat-border: var(--color-sky);
+  --color-contrasty-border: var(--color-dust);
+  --color-input: var(--color-white);
+
+  --color-text-normal: var(--color-night);
+  --color-text-light: var(--color-steel);
+
+  --shadow-opacity-1: 0.01;
+  --shadow-opacity-2: 0.02;
+  --shadow-opacity-3: 0.03;
+  --shadow-opacity-4: 0.04;
+  --shadow-opacity-5: 0.05;
+
+  --overlying-bg: #{$gray-light-0};
+  --overlying-bg-rgb: 255, 255, 255;
+}
+
+// Gradients
+.aw-2-bg--purple-gradient {
+  @include purple-gradient();
+  color: $color-night;
+}
+
+// Backgrounds
+@each $name, $color in $bg-colors {
+  .aw-2-bg--#{$name} {
+    background-color: $color;
+  }
+}
+
+// Borders
+@each $name, $color in $border-colors {
+  .aw-2-b--#{$name} {
+    border: 1px solid $color !important;
+  }
+}
