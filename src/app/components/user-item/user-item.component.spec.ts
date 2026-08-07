@@ -54,27 +54,27 @@ describe('UserItemComponent', () => {
     }
   });
 
-  it('should toggle expanded state when clicked and reveal additional details', () => {
+  it('should reflect the `expanded` input as a CSS class, without owning the state itself', () => {
     const element = fixture.nativeElement as HTMLElement;
     const card = element.querySelector('.user-item') as HTMLElement;
-    expect(component.expanded()).toBeFalsy();
+    expect(card.classList).not.toContain('user-item--expanded');
 
-    card.click();
+    fixture.componentRef.setInput('expanded', true);
     fixture.detectChanges();
-    expect(component.expanded()).toBeTruthy();
     expect(card.classList).toContain('user-item--expanded');
+  });
 
-    // When expanded, the DOM should expose additional user details
-    const text = element.textContent || '';
-    expect(text).toContain('Austin'); // city
-    expect(text).toContain('United States'); // country
-    expect(text).toContain('555-1234'); // phone
-    expect(text).toContain('30'); // age
+  it('should emit `toggle` when clicked, and leave deciding what that means to the parent', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const card = element.querySelector('.user-item') as HTMLElement;
+    let toggleCount = 0;
+    component.toggle.subscribe(() => toggleCount++);
 
-    // Collapse again
     card.click();
-    fixture.detectChanges();
-    expect(component.expanded()).toBeFalsy();
+    expect(toggleCount).toBe(1);
+
+    card.click();
+    expect(toggleCount).toBe(2);
   });
 
   it('should handle missing optional fields gracefully', async () => {

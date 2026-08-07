@@ -1,22 +1,26 @@
-@if (groups().length) {
-  <article class="user-list">
-    @for (group of groups(); track group.title) {
-      <section class="group-card">
-        <header class="group-card__header">
-          <div>
-            <p class="group-title">{{ group.title }}</p>
-            <p class="group-subtitle">{{ group.count }} users</p>
-          </div>
-        </header>
-
-        <div class="group-items">
-          @for (user of group.users; track user.id || $index) {
-            <app-user-item [user]="user"></app-user-item>
-          }
-        </div>
-      </section>
-    }
-  </article>
+@if (rows().length) {
+  <cdk-virtual-scroll-viewport
+    class="user-list"
+    scrollWindow
+    [rowSizes]="rowSizes()"
+    [bufferPx]="bufferPx">
+    <div *cdkVirtualFor="let row of rows(); trackBy: trackByRowKey" class="virtual-item" [style.height.px]="row.size">
+      @switch (row.kind) {
+        @case ('header') {
+          <p class="group-header">
+            <span class="group-header__title">{{ row.title }}</span>
+            <span class="group-header__count">{{ row.count }} users</span>
+          </p>
+        }
+        @case ('user') {
+          <app-user-item [user]="row.user" [expanded]="row.expanded" (toggle)="toggleExpanded(row.key)"></app-user-item>
+        }
+        @case ('details') {
+          <app-user-details-card [user]="row.user"></app-user-details-card>
+        }
+      }
+    </div>
+  </cdk-virtual-scroll-viewport>
 } @else {
   <article class="user-list">
     <p class="empty-state">No matching users found.</p>

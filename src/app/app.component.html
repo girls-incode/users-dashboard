@@ -5,9 +5,9 @@
 </header>
 
 <main class="page-content">
-  <app-user-list-toolbar [searchControl]="searchControl" [groupOptions]="groupOptions"
-    [selectedGroup]="selectedGroup()" [currentPage]="currentPage()" (groupChange)="selectGroup($event)"
-    (previousPage)="previousPage()" (nextPage)="nextPage()" />
+  <app-user-list-toolbar [searchControl]="searchControl" [groupOptions]="groupOptions" [selectedGroup]="selectedGroup()"
+    [currentPage]="currentPage()" (groupChange)="selectGroup($event)" (previousPage)="previousPage()"
+    (nextPage)="nextPage()" />
 
   <section class="list-panel">
     @if (isLoading() || isGrouping()) {
@@ -17,7 +17,9 @@
     } @else if (errorMessage()) {
     <p class="error-state" role="alert">{{ errorMessage() }}</p>
     } @else {
+    @if (groups().length) {
     <p class="list-count">Users: {{ displayedUserCount() }}</p>
+    }
     <app-user-list [groups]="groups()"></app-user-list>
     }
   </section>

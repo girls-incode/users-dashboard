@@ -1,0 +1,81 @@
+@use 'ease/variables' as vars;
+
+:host {
+  display: block;
+  height: 100%;
+  box-sizing: border-box;
+  background: vars.$color-ice;
+  border: 1px solid vars.$color-fog;
+  border-top: none;
+  border-radius: 0 0 20px 20px;
+  padding: 0.9rem 1.2rem 0.95rem;
+  overflow: hidden;
+  animation: reveal 200ms ease-out;
+}
+
+/*
+ * Safe to animate: this host mounts as a brand-new virtual-scroll row (see UserListComponent's
+ * DetailsRow) at its full, already-reserved height — nothing here changes the element's box size
+ * over time, so it never fights the virtual scroll strategy's deterministic row-size math.
+ */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-details-card {
+  display: grid;
+  gap: 0.75rem;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    color: vars.$text-color-light;
+
+    span {
+      font-size: 0.88rem;
+    }
+
+    strong {
+      color: vars.$text-color-dark;
+      font-weight: 700;
+    }
+  }
+
+  &__skeleton {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  &__skeleton-row {
+    height: 14px;
+    border-radius: 7px;
+    background: linear-gradient(
+      90deg,
+      rgba(vars.$gray-light-800, 0.08) 25%,
+      rgba(vars.$gray-light-800, 0.16) 37%,
+      rgba(vars.$gray-light-800, 0.08) 63%
+    );
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: 0 0;
+  }
+}

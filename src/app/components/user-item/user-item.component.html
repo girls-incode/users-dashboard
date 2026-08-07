@@ -1,4 +1,4 @@
-<article class="user-item" [class.user-item--expanded]="expanded()" (click)="toggleExpanded()">
+<article class="user-item" [class.user-item--expanded]="expanded()" (click)="toggle.emit()">
   <div class="user-item__row">
     @if (user().image) {
     <img class="user-item__image" [src]="user().image" loading="lazy" width="52" height="52"
@@ -13,27 +13,6 @@
     <div class="user-item__details-summary">
       <p>{{ user().nat }}</p>
       <p>{{ user().locationLabel }}</p>
-    </div>
-  </div>
-
-  <div class="user-item__extra" [class.user-item__extra--visible]="expanded()">
-    <div class="user-item__extra-inner">
-      <div class="user-item__extra-row">
-        <span>Age</span>
-        <strong>{{ user().age }}</strong>
-      </div>
-      <div class="user-item__extra-row">
-        <span>Gender</span>
-        <strong>{{ user().gender }}</strong>
-      </div>
-      <div class="user-item__extra-row">
-        <span>Username</span>
-        <strong>{{ user().login?.username }}</strong>
-      </div>
-      <div class="user-item__extra-row">
-        <span>Phone</span>
-        <strong>{{ user().phone }}</strong>
-      </div>
     </div>
   </div>
 </article>
