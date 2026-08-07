@@ -67,16 +67,16 @@ describe('UserListComponent', () => {
       .toContain('No matching users found.');
   });
 
-  it('should use a single window-scrolled virtual scroll viewport, not the fixed-size or autosize strategies', () => {
-    const viewports = (fixture.nativeElement as HTMLElement).querySelectorAll('cdk-virtual-scroll-viewport');
+  it('should size the list container to the virtualizer\'s total content size and absolutely position each row', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const list = element.querySelector('.user-list') as HTMLElement;
+    const item = element.querySelector('.virtual-item') as HTMLElement;
 
-    expect(viewports).toHaveLength(1);
-    expect(viewports[0].hasAttribute('scrollWindow')).toBe(true);
-    expect(viewports[0].hasAttribute('itemSize')).toBe(false);
-    expect(viewports[0].hasAttribute('autosize')).toBe(false);
+    expect(list.style.height).toMatch(/^\d+px$/);
+    expect(item.style.top).toMatch(/^\d+px$/);
   });
 
-  it('should declare a fixed pixel height per row, matching the deterministic row-size strategy\'s contract', () => {
+  it('should declare a fixed pixel height per row, matching the deterministic row-size contract', () => {
     const items = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('.virtual-item')
     ) as HTMLElement[];

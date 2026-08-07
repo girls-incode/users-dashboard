@@ -3,21 +3,30 @@
 :host {
   display: block;
 
+  /*
+   * The list's own height is bound to the virtualizer's total content size — every row inside is
+   * absolutely positioned (out of normal flow) via its own `top`, so this element's natural
+   * height wouldn't otherwise reflect the full scrollable size. This is the equivalent of what
+   * CDK's virtual-scroll-viewport does internally with its spacer element, just explicit here.
+   */
   .user-list {
-    display: block;
+    position: relative;
     width: 100%;
   }
 
   /*
-   * Height is bound per-row from the TypeScript-side row-size constants (HEADER_ROW_HEIGHT /
-   * USER_ROW_HEIGHT / DETAILS_ROW_HEIGHT) and must never be allowed to grow/shrink from its
-   * declared value — RowSizeVirtualScrollStrategy positions every row from that declared number
-   * alone, it does not measure the DOM. `overflow: hidden` is a defensive clamp, not the
-   * mechanism: content is expected to already fit.
+   * Height and bottom gap are both bound per-row from TypeScript (see UserListComponent's `rows`)
+   * and must never be allowed to grow/shrink from their declared values — the virtualizer
+   * positions every row from that declared height alone, it does not measure the DOM. Gap is a
+   * bound `padding-bottom`, not a blanket rule, because an expanded user row's gap collapses to 0
+   * so it sits flush against its own details row right below it. `overflow: hidden` is a
+   * defensive clamp, not the mechanism: content is expected to already fit.
    */
   .virtual-item {
+    position: absolute;
+    left: 0;
+    right: 0;
     box-sizing: border-box;
-    padding-bottom: 12px;
     overflow: hidden;
   }
 
@@ -65,7 +74,7 @@
   /*
    * Deliberately no flex-direction/wrap changes here at narrower widths: this row renders inside
    * a virtual-scroll slot whose height is fixed and known up front (see UserListComponent's
-   * HEADER_ROW_HEIGHT) — wrapping onto a second line would grow past that declared height.
+   * HEADER_CONTENT_HEIGHT) — wrapping onto a second line would grow past that declared height.
    */
   @media (max-width: 720px) {
     .group-header {

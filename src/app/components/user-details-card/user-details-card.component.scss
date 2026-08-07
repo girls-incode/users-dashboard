@@ -1,5 +1,13 @@
 @use 'ease/variables' as vars;
 
+/*
+ * This card's height is NOT auto — it's forced to exactly fill a slot declared elsewhere
+ * (`DETAILS_CONTENT_HEIGHT` in user-list.component.ts, computed by hand-summing this padding +
+ * the 4 rows below + their gaps + the border). Changing padding, gap, font-size, or border here
+ * silently desyncs that constant — nothing catches the mismatch except visual QA, since it's
+ * declared sizing, not measured. If you touch this file's vertical spacing, go recompute
+ * DETAILS_CONTENT_HEIGHT to match.
+ */
 :host {
   display: block;
   height: 100%;
@@ -8,7 +16,7 @@
   border: 1px solid vars.$color-fog;
   border-top: none;
   border-radius: 0 0 20px 20px;
-  padding: 0.9rem 1.2rem 0.95rem;
+  padding: 0.9rem 1.2rem 12px;
   overflow: hidden;
   animation: reveal 200ms ease-out;
 }
@@ -16,17 +24,19 @@
 /*
  * Safe to animate: this host mounts as a brand-new virtual-scroll row (see UserListComponent's
  * DetailsRow) at its full, already-reserved height — nothing here changes the element's box size
- * over time, so it never fights the virtual scroll strategy's deterministic row-size math.
+ * over time, so it never fights the virtual scroll's deterministic row-size math. Opacity-only on
+ * purpose, no translateY: this host is `height: 100%` of its parent `.virtual-item`, which has
+ * `overflow: hidden` — any translateY would move part of the box (and during the transition, its
+ * content) above/below that parent's clip boundary and get cut off, same issue fixed in
+ * user-item.component.scss's hover state.
  */
 @keyframes reveal {
   from {
     opacity: 0;
-    transform: translateY(-6px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 

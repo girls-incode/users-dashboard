@@ -1,26 +1,25 @@
 @if (rows().length) {
-  <cdk-virtual-scroll-viewport
-    class="user-list"
-    scrollWindow
-    [rowSizes]="rowSizes()"
-    [bufferPx]="bufferPx">
-    <div *cdkVirtualFor="let row of rows(); trackBy: trackByRowKey" class="virtual-item" [style.height.px]="row.size">
-      @switch (row.kind) {
-        @case ('header') {
-          <p class="group-header">
-            <span class="group-header__title">{{ row.title }}</span>
-            <span class="group-header__count">{{ row.count }} users</span>
-          </p>
+  <div class="user-list" [style.height.px]="virtualizer.getTotalSize()">
+    @for (item of virtualizer.getVirtualItems(); track item.key) {
+      @let row = rows()[item.index];
+      <div class="virtual-item" [style.top.px]="item.start" [style.height.px]="item.size" [style.padding-bottom.px]="row.gap">
+        @switch (row.kind) {
+          @case ('header') {
+            <p class="group-header">
+              <span class="group-header__title">{{ row.title }}</span>
+              <span class="group-header__count">{{ row.count }} users</span>
+            </p>
+          }
+          @case ('user') {
+            <app-user-item [user]="row.user" [expanded]="isExpanded(row.key)" (toggle)="toggleExpanded(row.key)"></app-user-item>
+          }
+          @case ('details') {
+            <app-user-details-card [user]="row.user"></app-user-details-card>
+          }
         }
-        @case ('user') {
-          <app-user-item [user]="row.user" [expanded]="row.expanded" (toggle)="toggleExpanded(row.key)"></app-user-item>
-        }
-        @case ('details') {
-          <app-user-details-card [user]="row.user"></app-user-details-card>
-        }
-      }
-    </div>
-  </cdk-virtual-scroll-viewport>
+      </div>
+    }
+  </div>
 } @else {
   <article class="user-list">
     <p class="empty-state">No matching users found.</p>

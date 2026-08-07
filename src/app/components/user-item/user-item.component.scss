@@ -9,12 +9,29 @@
     border: 1px solid vars.$color-fog;
     box-shadow: 0 8px 24px rgba(vars.$gray-light-800, 0.06);
     overflow: hidden;
-    transition: transform 200ms ease, border-color 200ms ease;
+    transition: border-color 200ms ease;
     cursor: pointer;
 
+    /*
+     * No transform-based "lift" here on purpose: this element is `height: 100%` of its parent
+     * `.virtual-item`, which has `overflow: hidden` (see user-list.component.scss). Any negative
+     * translateY moves the whole box — including its own top border — above that parent's clip
+     * boundary, where it gets cut off. That's not specific to hover-while-expanded; it clips the
+     * top border on every hover, since the box already fills its parent exactly. Border-color is
+     * hover feedback enough on its own, with no box movement to clip.
+     */
     &:hover {
-      transform: translateY(-1px);
       border-color: rgba(vars.$color-blue-900, 0.35);
+    }
+
+    /*
+     * `border-color` is repeated here (not just inherited from `&--expanded` below):
+     * `.user-item:hover` has higher specificity (0,2,0) than `.user-item--expanded` alone (0,1,0),
+     * so without this, hovering an expanded row would always win out and swap in the hover border
+     * color regardless of source order, making the border appear to change on hover.
+     */
+    &--expanded:hover {
+      border-color: rgba(vars.$color-blue-900, 0.4);
     }
 
     &__row {
