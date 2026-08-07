@@ -1,5 +1,24 @@
-<header>
-  <img src="logo.svg" alt="awork logo" />
+<header class="page-header">
+  <div class="logo-wrap">
+    <img src="/logo.svg" alt="awork logo" class="brand-logo" />
+  </div>
 </header>
 
-<app-user-list [users]="users"></app-user-list>
+<main class="page-content">
+  <app-user-list-toolbar [searchControl]="searchControl" [groupOptions]="groupOptions"
+    [selectedGroup]="selectedGroup()" [currentPage]="currentPage()" (groupChange)="selectGroup($event)"
+    (previousPage)="previousPage()" (nextPage)="nextPage()" />
+
+  <section class="list-panel">
+    @if (isLoading() || isGrouping()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+    </div>
+    } @else if (errorMessage()) {
+    <p class="error-state" role="alert">{{ errorMessage() }}</p>
+    } @else {
+    <p class="list-count">Users: {{ displayedUserCount() }}</p>
+    <app-user-list [groups]="groups()"></app-user-list>
+    }
+  </section>
+</main>

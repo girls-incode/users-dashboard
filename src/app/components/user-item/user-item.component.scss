@@ -1,49 +1,128 @@
-@use 'ease/ease-import.scss' as *;
+@use 'ease/variables' as vars;
 
 :host {
   .user-item {
-    align-items: center;
-    border-bottom: 1px solid $color-fog;
-    box-sizing: border-box;
-    display: flex;
-    flex-wrap: nowrap;
-    height: 60px;
-    padding: 12px;
-    color: $color-night;
+    background: vars.$color-white;
+    border-radius: 20px;
+    border: 1px solid vars.$color-fog;
+    box-shadow: 0 8px 24px rgba(vars.$gray-light-800, 0.06);
+    margin-bottom: 0.9rem;
+    overflow: hidden;
+    transition: transform 200ms ease, border-color 200ms ease;
+    cursor: pointer;
 
-    &__image {
-      border-radius: 20%;
-      height: 40px;
-      width: 40px;
+    &:hover {
+      transform: translateY(-1px);
+      border-color: rgba(vars.$color-blue-900, 0.35);
     }
 
-    &__name,
-    &__email,
-    &__phone {
-      margin: 12px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-align: left;
-      white-space: nowrap;
+    &__row {
+      align-items: center;
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+    }
+
+    &__image {
+      border-radius: 18px;
+      height: 52px;
+      width: 52px;
+      flex-shrink: 0;
+      object-fit: cover;
+      background: vars.$color-sky;
+    }
+
+    &__main {
+      flex: 1;
+      min-width: 0;
     }
 
     &__name {
-      flex: 1;
-      min-width: 100px;
+      font-weight: 700;
+      margin: 0 0 0.3rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    &__email {
-      width: 220px;
+    &__meta {
+      color: vars.$text-color-light;
+      font-size: 0.95rem;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    &__phone {
-      width: 110px;
-    }
-
-    &__nat {
-      margin-left: 12px;
+    &__details-summary {
+      display: grid;
+      gap: 0.25rem;
+      font-size: 0.95rem;
       text-align: right;
-      width: 80px;
+      min-width: 160px;
+      color: vars.$text-color-dark;
+    }
+
+    &__extra {
+      background: vars.$color-ice;
+      overflow: hidden;
+      max-height: 0;
+      padding: 0 1.2rem;
+      border-top: 1px solid vars.$color-fog;
+      transition: max-height 180ms ease-out, padding 180ms ease-out;
+    }
+
+    &__extra--visible {
+      max-height: 999px;
+      padding: 0.9rem 1.2rem 0.95rem;
+    }
+
+    &__extra-inner {
+      display: grid;
+      gap: 0.75rem;
+      transform: translateY(-8px);
+      opacity: 0;
+      transition: transform 180ms ease-out, opacity 180ms ease-out;
+    }
+
+    &__extra--visible .user-item__extra-inner {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    &__extra-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      color: vars.$text-color-light;
+
+      span {
+        font-size: 0.88rem;
+      }
+
+      strong {
+        color: vars.$text-color-dark;
+        font-weight: 700;
+      }
+    }
+
+    &--expanded {
+      border-color: rgba(vars.$color-blue-900, 0.4);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .user-item {
+      &__row {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      &__details-summary {
+        min-width: 100%;
+        text-align: left;
+      }
     }
   }
 }

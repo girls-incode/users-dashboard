@@ -1,13 +1,39 @@
-<div class="user-item">
-  <img class="user-item__image" [src]="user().imageSrc" />
+<article class="user-item" [class.user-item--expanded]="expanded()" (click)="toggleExpanded()">
+  <div class="user-item__row">
+    @if (user().image) {
+    <img class="user-item__image" [src]="user().image" loading="lazy" width="52" height="52"
+      alt="Avatar of {{ user().firstname }} {{ user().lastname }}" />
+    }
 
-  <p class="user-item__name">
-    {{ user().firstname }} {{ user().lastname }}
-  </p>
+    <div class="user-item__main">
+      <p class="user-item__name">{{ user().firstname }} {{ user().lastname }}</p>
+      <p class="user-item__meta">{{ user().email }}</p>
+    </div>
 
-  <p class="user-item__email">{{ user().email }}</p>
+    <div class="user-item__details-summary">
+      <p>{{ user().nat }}</p>
+      <p>{{ user().locationLabel }}</p>
+    </div>
+  </div>
 
-  <p class="user-item__phone">{{ user().phone }}</p>
-
-  <p class="user-item__nat">{{ user().nat }} ({{ nationalitiesCount }})</p>
-</div>
+  <div class="user-item__extra" [class.user-item__extra--visible]="expanded()">
+    <div class="user-item__extra-inner">
+      <div class="user-item__extra-row">
+        <span>Age</span>
+        <strong>{{ user().age }}</strong>
+      </div>
+      <div class="user-item__extra-row">
+        <span>Gender</span>
+        <strong>{{ user().gender }}</strong>
+      </div>
+      <div class="user-item__extra-row">
+        <span>Username</span>
+        <strong>{{ user().login?.username }}</strong>
+      </div>
+      <div class="user-item__extra-row">
+        <span>Phone</span>
+        <strong>{{ user().phone }}</strong>
+      </div>
+    </div>
+  </div>
+</article>

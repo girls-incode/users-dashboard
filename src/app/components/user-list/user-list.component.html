@@ -1,11 +1,24 @@
-@if (users().length) {
+@if (groups().length) {
   <article class="user-list">
-    @for (user of users(); track $index) {
-      <app-user-item [user]="user" [allUsers]="users()" />
+    @for (group of groups(); track group.title) {
+      <section class="group-card">
+        <header class="group-card__header">
+          <div>
+            <p class="group-title">{{ group.title }}</p>
+            <p class="group-subtitle">{{ group.count }} users</p>
+          </div>
+        </header>
+
+        <div class="group-items">
+          @for (user of group.users; track user.id || $index) {
+            <app-user-item [user]="user"></app-user-item>
+          }
+        </div>
+      </section>
     }
   </article>
 } @else {
   <article class="user-list">
-    <p>Loading…</p>
+    <p class="empty-state">No matching users found.</p>
   </article>
 }

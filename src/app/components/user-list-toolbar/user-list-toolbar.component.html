@@ -1,0 +1,24 @@
+<section class="toolbar">
+  <div class="toolbar__row">
+    <div class="search-box">
+      <input id="search" [formControl]="searchControl()" minlength="3" aria-label="Search users by name"
+        placeholder="Search by name (min 3 characters)" />
+    </div>
+
+    <div class="group-buttons">
+      <p>Group by</p>
+      @for (option of groupOptions(); track option.value) {
+      <button type="button" class="group-button" [class.active]="selectedGroup() === option.value"
+        [attr.aria-pressed]="selectedGroup() === option.value" (click)="groupChange.emit(option.value)">
+        {{ option.label }}
+      </button>
+      }
+    </div>
+
+    <div class="page-controls">
+      <button type="button" (click)="previousPage.emit()" [disabled]="currentPage() === 1">Previous</button>
+      <span>Page {{ currentPage() }}</span>
+      <button type="button" (click)="nextPage.emit()">Next</button>
+    </div>
+  </div>
+</section>

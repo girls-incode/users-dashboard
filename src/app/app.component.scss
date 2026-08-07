@@ -1,10 +1,67 @@
+@use 'ease/variables' as vars;
+
 :host {
-  header {
-    height: 200px;
+  display: block;
+  background-color: vars.$color-smoke;
+  min-height: 100vh;
+  color: vars.$text-color-dark;
+
+  .page-header {
+    padding: 2rem;
     text-align: center;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  }
+
+  .page-content {
+    padding: 2rem 1rem 3rem;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .list-panel {
+    background: vars.$color-white;
+    border-radius: 24px;
+    box-shadow: 0 20px 80px rgba(vars.$gray-light-800, 0.08);
+    padding: 1.5rem;
+  }
+
+  .list-count {
+    margin-bottom: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .error-state {
+    padding: 2rem;
+    color: vars.$color-red-900;
+    text-align: center;
+  }
+
+  .loading-state {
+    padding: 3rem;
+  }
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 4px solid rgba(vars.$color-blue-900, 0.18);
+    border-top-color: vars.$color-blue-900;
+    animation: spin 1s linear infinite;
+    margin: auto;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 720px) {
+
+    .page-header,
+    .page-content {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
   }
 }

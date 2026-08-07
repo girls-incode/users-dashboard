@@ -1,15 +1,16 @@
-import { Component, input } from '@angular/core';
-import { User } from '../../models/user.model'
-import { UserItemComponent } from '../user-item/user-item.component'
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { UserGroup } from '../../models/grouping.model';
+import { UserItemComponent } from '../user-item/user-item.component';
 
 @Component({
   selector: 'app-user-list',
+  standalone: true,
   templateUrl: './user-list.component.html',
-  styleUrl: './user-list.component.scss',
-  imports: [
-    UserItemComponent
-  ]
+  styleUrls: ['./user-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, UserItemComponent]
 })
 export class UserListComponent {
-  users = input.required<User[]>()
+  groups = input.required<UserGroup[]>();
 }

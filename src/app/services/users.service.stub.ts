@@ -10,9 +10,8 @@ import { MockResult } from '../mock-data';
 export class UsersServiceStub {
 
   /**
-   * Fetches 5000 mock users from the api
-   * @param {number} page
-   * @returns {Observable<User[]>}
+   * Returns the bundled mock users for offline development.
+   * @param page Page number to retrieve (defaults to 1).
    */
   getUsers(page = 1): Observable<User[]> {
     return of(MockResult).pipe(

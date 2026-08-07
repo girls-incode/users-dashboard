@@ -4,10 +4,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
+    "module": "ES2022",
     "types": [
-      "jasmine"
+      "jest"
     ]
   },
+
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts"
