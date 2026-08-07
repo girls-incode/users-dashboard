@@ -80,26 +80,8 @@ describe('UserListComponent', () => {
     items.forEach(item => expect(item.style.top).toMatch(/^\d+px$/));
   });
 
-  it('should insert a details row after a user is expanded, and remove it on collapse', async () => {
-    let element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('app-user-details-card')).toBeNull();
-
-    (element.querySelector('.user-item') as HTMLElement).click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('app-user-details-card')).not.toBeNull();
-
-    (element.querySelector('.user-item') as HTMLElement).click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('app-user-details-card')).toBeNull();
-  });
+  // Expanding a row to insert its details row, then collapsing to remove it, is covered end to
+  // end in e2e/app.spec.ts against the real app rather than re-asserted here in isolation.
 
   it('should flatten multiple groups in order: each group\'s header immediately followed by its own users', async () => {
     fixture.componentRef.setInput('groups', multiGroupMocks);

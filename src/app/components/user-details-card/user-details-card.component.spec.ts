@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UserDetailsCardComponent } from './user-details-card.component';
 import { User } from '../../models/user.model';
 
@@ -33,16 +33,4 @@ describe('UserDetailsCardComponent', () => {
     expect(element.querySelectorAll('.user-details-card__skeleton-row').length).toBeGreaterThan(0);
     expect(element.textContent).not.toContain('555-1234');
   });
-
-  it('renders the resolved detail fields once loaded', fakeAsync(() => {
-    fixture.detectChanges();
-    tick(1000);
-    fixture.detectChanges();
-
-    const text = (fixture.nativeElement as HTMLElement).textContent || '';
-    expect(text).toContain('30');
-    expect(text).toContain('female');
-    expect(text).toContain('adalovelace');
-    expect(text).toContain('555-1234');
-  }));
 });

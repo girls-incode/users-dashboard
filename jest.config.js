@@ -9,5 +9,8 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|scss)$': 'identity-obj-proxy'
   },
-  testMatch: ['**/+(*.)+(spec).+(ts)']
+  testMatch: ['**/+(*.)+(spec).+(ts)'],
+  // e2e/ holds Playwright specs (run via `npm run e2e`, not Jest) — without this, Jest's testMatch
+  // glob above also picks them up and fails trying to run @playwright/test inside jsdom.
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/e2e/']
 };
