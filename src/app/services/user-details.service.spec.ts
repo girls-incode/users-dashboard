@@ -73,4 +73,36 @@ describe('UserDetailsService', () => {
     expect(first?.username).toBe('adalovelace');
     expect(second?.username).toBe('otheruser');
   }));
+
+  it('evicts the oldest entry once the cache exceeds its cap, so it re-fetches on the next request', fakeAsync(() => {
+    const MAX_CACHE_ENTRIES = 200;
+    const usersByIndex = (index: number) =>
+      new User({
+        id: `user-${index}`,
+        age: 20 + index,
+        login: { uuid: `user-${index}`, username: `user${index}`, password: '', salt: '', md5: '', sha1: '', sha256: '' }
+      });
+
+    // Fill the cache to capacity with the oldest user first...
+    service.getDetails(usersByIndex(0)).subscribe();
+    tick(1000);
+
+    // ...then push it past capacity with MAX_CACHE_ENTRIES more distinct users.
+    for (let i = 1; i <= MAX_CACHE_ENTRIES; i++) {
+      service.getDetails(usersByIndex(i)).subscribe();
+    }
+    tick(1000);
+
+    // The very first (now-evicted) user re-fetches instead of replaying instantly.
+    let reFetched: UserDetails | undefined;
+    service.getDetails(usersByIndex(0)).subscribe(details => (reFetched = details));
+    expect(reFetched).toBeUndefined();
+    tick(1000);
+    expect(reFetched?.age).toBe(20);
+
+    // A recently-added user is still cached and replays without waiting.
+    let stillCached: UserDetails | undefined;
+    service.getDetails(usersByIndex(MAX_CACHE_ENTRIES)).subscribe(details => (stillCached = details));
+    expect(stillCached).toBeDefined();
+  }));
 });

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, ElementRef, input, signal, viewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { injectWindowVirtualizer } from '@tanstack/angular-virtual';
 import { UserGroup } from '../../models/grouping.model';
@@ -14,21 +14,18 @@ import { UserDetailsCardComponent } from '../user-details-card/user-details-card
  */
 const ROW_GAP = 12;
 
+/**
+ * Best-effort *initial* row heights — hand-computed from each row's actual CSS once (see
+ * `git blame` / PR history for the arithmetic), not re-verified against the DOM automatically.
+ * These only matter for first paint now: `virtualizer` below also does real DOM measurement via
+ * `ResizeObserver` (`measureElement`, wired through the `#virtualItem` refs in the template) that
+ * self-corrects the actual scroll math to whatever each row truly renders at, per its own stable
+ * key — so a stale estimate here no longer clips content or leaves dead space, it just costs a
+ * one-frame layout correction the first time a given row is measured. Still worth keeping close to
+ * accurate, since a good estimate means less visible correction.
+ */
 const HEADER_CONTENT_HEIGHT = 52;
 const USER_CONTENT_HEIGHT = 96;
-/**
- * The details card's height, computed from its actual CSS (`user-details-card.component.scss`)
- * and the global type styles, not guessed. Root font-size is 14px (`$font-size-normal`), BUT
- * `body`'s `line-height` ends up 20px (`$line-height-normal`), not the `1` that `_reset.scss` sets
- * first — `ease-styles.scss` imports `_typography.scss` after the reset and then redeclares
- * `body, html { line-height: $line-height-normal }` itself, same specificity, later in the
- * cascade, so it wins. A fixed-length line-height (20px) inherits as that literal length, not
- * rescaled per descendant font-size, so every row here is 20px tall regardless of its own
- * font-size. 12.6px top padding (0.9rem) + 4×20px rows + 3×10.5px gaps (0.75rem) + 12px bottom
- * padding + 1px bottom border ≈ 138px. Declared sizing means this number, not the DOM, drives the
- * card's slot — if the CSS above (or the global type styles) ever changes, this must be
- * recomputed to match, or the slot will clip content or leave dead space.
- */
 const DETAILS_CONTENT_HEIGHT = 138;
 
 export type ListRow =
@@ -117,8 +114,10 @@ export class UserListComponent {
 
   /**
    * Virtualizes `rows` against the window scrollbar (no boxed inner scroll region). `estimateSize`
-   * returns each row's exact declared size — see the row-size constants above — so there's no
-   * measurement/averaging step for TanStack to get wrong at list boundaries.
+   * seeds each row with its best-effort declared size (see the row-size constants above) for a
+   * clean first paint; `measureElement` (wired below via `#virtualItem`) then self-corrects to
+   * each row's *real* rendered size, per its own stable key, so an estimate that's slightly off
+   * self-heals instead of clipping content or leaving dead space.
    *
    * `rows()` is read once here into a local, rather than separately inside `count` and each
    * callback — the whole options object is one reactive unit (this factory re-runs whenever `rows`
@@ -134,6 +133,24 @@ export class UserListComponent {
       getItemKey: (index: number) => rows[index]?.key ?? index,
       overscan: 5
     };
+  });
+
+  /** Currently-rendered row elements — see the `#virtualItem` template ref. Only ever as many as
+   *  virtualization keeps mounted (visible + overscan), never the full row count. */
+  private readonly virtualItemElements = viewChildren<ElementRef<HTMLDivElement>>('virtualItem');
+
+  /**
+   * Real DOM measurement, self-correcting `estimateSize`'s guesses. Matches TanStack's own
+   * official Angular window-virtualizer pattern (`measureElement` per rendered ref). Safe against
+   * the kind of bug that ruled out CDK's `autosize` earlier: that strategy blended every rendered
+   * item into one running average, so one row's measurement could skew estimates for unrelated
+   * rows; here each row's measured size is cached against its own stable key (`getItemKey` above),
+   * so a correction never leaks into other rows.
+   */
+  private readonly measureRenderedRows = effect(() => {
+    for (const element of this.virtualItemElements()) {
+      this.virtualizer.measureElement(element.nativeElement);
+    }
   });
 
   protected isExpanded(userKey: string): boolean {

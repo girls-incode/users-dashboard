@@ -2,8 +2,6 @@
 
 :host {
   .user-item {
-    height: 100%;
-    box-sizing: border-box;
     background: vars.$color-white;
     border-radius: 20px;
     border: 1px solid vars.$color-fog;
@@ -13,12 +11,10 @@
     cursor: pointer;
 
     /*
-     * No transform-based "lift" here on purpose: this element is `height: 100%` of its parent
-     * `.virtual-item`, which has `overflow: hidden` (see user-list.component.scss). Any negative
-     * translateY moves the whole box — including its own top border — above that parent's clip
-     * boundary, where it gets cut off. That's not specific to hover-while-expanded; it clips the
-     * top border on every hover, since the box already fills its parent exactly. Border-color is
-     * hover feedback enough on its own, with no box movement to clip.
+     * No transform-based "lift" here on purpose: this card sits directly above its own details
+     * card when expanded, with no gap between them (see UserListComponent's `gap: 0` on an
+     * expanded row) — any vertical movement here would open a seam at that shared edge.
+     * Border-color is hover feedback enough on its own, with no box movement involved.
      */
     &:hover {
       border-color: rgba(vars.$color-blue-900, 0.35);
@@ -35,8 +31,6 @@
     }
 
     &__row {
-      height: 100%;
-      box-sizing: border-box;
       align-items: center;
       display: flex;
       gap: 1rem;
@@ -99,11 +93,9 @@
   }
 
   /*
-   * Deliberately no flex-wrap / multi-line layout at narrower widths: this row renders inside a
-   * virtual-scroll slot whose height is fixed and known up front (see UserListComponent's
-   * USER_ROW_HEIGHT) — the whole point of that contract is that a row's real height never
-   * changes, at any viewport width. Narrow viewports shrink the details column and lean harder on
-   * ellipsis truncation instead of wrapping onto a second line.
+   * Still no flex-wrap / multi-line layout at narrower widths — real DOM measurement would happily
+   * adapt to a taller wrapped row now, but a wider, denser look reads better here than a second
+   * line, so narrow viewports shrink the details column and lean on ellipsis truncation instead.
    */
   @media (max-width: 720px) {
     .user-item {

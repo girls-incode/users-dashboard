@@ -14,6 +14,15 @@ export interface UserDetails {
 const SIMULATED_LATENCY_MS = 350;
 
 /**
+ * Cap on distinct cached user ids. Without a bound, a long session where many different rows get
+ * expanded over time would grow this forever. A plain FIFO eviction (oldest inserted key first,
+ * relying on `Map`'s insertion-order iteration) is enough here — an evicted-then-re-expanded user
+ * just re-runs the simulated fetch, no correctness impact, so a full LRU tracking structure would
+ * be solving a problem this app doesn't have.
+ */
+const MAX_CACHE_ENTRIES = 200;
+
+/**
  * Provides the extended per-user detail fields (age, gender, username, phone) as an on-demand,
  * cached Observable, for use behind an expand/collapse interaction.
  *
@@ -53,6 +62,12 @@ export class UserDetailsService {
       shareReplay({ bufferSize: 1, refCount: false })
     );
 
+    if (this.cache.size >= MAX_CACHE_ENTRIES) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
     this.cache.set(cacheKey, request$);
     return request$;
   }

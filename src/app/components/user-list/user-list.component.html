@@ -2,7 +2,12 @@
   <div class="user-list" [style.height.px]="virtualizer.getTotalSize()">
     @for (item of virtualizer.getVirtualItems(); track item.key) {
       @let row = rows()[item.index];
-      <div class="virtual-item" [style.top.px]="item.start" [style.height.px]="item.size" [style.padding-bottom.px]="row.gap">
+      <div
+        #virtualItem
+        class="virtual-item"
+        [attr.data-index]="item.index"
+        [style.top.px]="item.start"
+        [style.padding-bottom.px]="row.gap">
         @switch (row.kind) {
           @case ('header') {
             <p class="group-header">

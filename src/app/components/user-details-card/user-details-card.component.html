@@ -1,5 +1,5 @@
 <div class="user-details-card">
-  @if (loading()) {
+  @if (detailsResource.isLoading()) {
     <div class="user-details-card__skeleton" aria-hidden="true">
       @for (row of [1, 2, 3, 4]; track row) {
         <span class="user-details-card__skeleton-row"></span>
@@ -8,19 +8,19 @@
   } @else {
     <div class="user-details-card__row">
       <span>Age</span>
-      <strong>{{ details()?.age }}</strong>
+      <strong>{{ detailsResource.value()?.age }}</strong>
     </div>
     <div class="user-details-card__row">
       <span>Gender</span>
-      <strong>{{ details()?.gender }}</strong>
+      <strong>{{ detailsResource.value()?.gender }}</strong>
     </div>
     <div class="user-details-card__row">
       <span>Username</span>
-      <strong>{{ details()?.username }}</strong>
+      <strong>{{ detailsResource.value()?.username }}</strong>
     </div>
     <div class="user-details-card__row">
       <span>Phone</span>
-      <strong>{{ details()?.phone }}</strong>
+      <strong>{{ detailsResource.value()?.phone }}</strong>
     </div>
   }
 </div>

@@ -1,34 +1,29 @@
 @use 'ease/variables' as vars;
 
 /*
- * This card's height is NOT auto — it's forced to exactly fill a slot declared elsewhere
- * (`DETAILS_CONTENT_HEIGHT` in user-list.component.ts, computed by hand-summing this padding +
- * the 4 rows below + their gaps + the border). Changing padding, gap, font-size, or border here
- * silently desyncs that constant — nothing catches the mismatch except visual QA, since it's
- * declared sizing, not measured. If you touch this file's vertical spacing, go recompute
- * DETAILS_CONTENT_HEIGHT to match.
+ * This card is naturally/auto sized from its own padding + the 4 rows below + their gaps + its
+ * border — not forced to a parent-supplied height. `DETAILS_CONTENT_HEIGHT` in
+ * user-list.component.ts is only a best-effort *initial* estimate for first paint (computed by
+ * hand-summing this same padding/rows/gaps/border); the virtualizer's real DOM measurement
+ * self-corrects to whatever this actually renders at, so drifting the two out of sync no longer
+ * clips content or leaves dead space — it just costs a one-frame layout correction the first time
+ * a given details row is measured. Still worth keeping the estimate close, to minimize that.
  */
 :host {
   display: block;
-  height: 100%;
-  box-sizing: border-box;
   background: vars.$color-ice;
   border: 1px solid vars.$color-fog;
   border-top: none;
   border-radius: 0 0 20px 20px;
   padding: 0.9rem 1.2rem 12px;
-  overflow: hidden;
   animation: reveal 200ms ease-out;
 }
 
 /*
- * Safe to animate: this host mounts as a brand-new virtual-scroll row (see UserListComponent's
- * DetailsRow) at its full, already-reserved height — nothing here changes the element's box size
- * over time, so it never fights the virtual scroll's deterministic row-size math. Opacity-only on
- * purpose, no translateY: this host is `height: 100%` of its parent `.virtual-item`, which has
- * `overflow: hidden` — any translateY would move part of the box (and during the transition, its
- * content) above/below that parent's clip boundary and get cut off, same issue fixed in
- * user-item.component.scss's hover state.
+ * Opacity-only on purpose, no translateY: this host mounts as a brand-new virtual-scroll row (see
+ * UserListComponent's DetailsRow), and moving it during the transition would misrepresent its real
+ * size to the virtualizer's `measureElement` (which reads the live rendered box), risking a
+ * mid-animation flicker as it corrects.
  */
 @keyframes reveal {
   from {

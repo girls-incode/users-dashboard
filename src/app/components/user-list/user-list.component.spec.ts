@@ -67,22 +67,17 @@ describe('UserListComponent', () => {
       .toContain('No matching users found.');
   });
 
-  it('should size the list container to the virtualizer\'s total content size and absolutely position each row', () => {
+  it('should virtualize rows: size the list to total content and position each row', () => {
     const element = fixture.nativeElement as HTMLElement;
     const list = element.querySelector('.user-list') as HTMLElement;
-    const item = element.querySelector('.virtual-item') as HTMLElement;
+    const items = Array.from(element.querySelectorAll('.virtual-item')) as HTMLElement[];
 
     expect(list.style.height).toMatch(/^\d+px$/);
-    expect(item.style.top).toMatch(/^\d+px$/);
-  });
-
-  it('should declare a fixed pixel height per row, matching the deterministic row-size contract', () => {
-    const items = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.virtual-item')
-    ) as HTMLElement[];
-
     expect(items.length).toBeGreaterThan(0);
-    items.forEach(item => expect(item.style.height).toMatch(/^\d+px$/));
+    // No forced/min height on the row wrapper itself — each row is sized entirely by its own
+    // content (see UserItemComponent/UserDetailsCardComponent), not stretched or floored by a
+    // TanStack estimate, so there's never a gap between a row's real content and its slot.
+    items.forEach(item => expect(item.style.top).toMatch(/^\d+px$/));
   });
 
   it('should insert a details row after a user is expanded, and remove it on collapse', async () => {

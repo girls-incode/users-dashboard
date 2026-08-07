@@ -40,18 +40,12 @@ describe('UserItemComponent', () => {
     expect(element.querySelector('.user-item__meta')?.textContent).toContain('jordan.smith@example.com');
   });
 
-  it('should render the avatar image with correct src and alt (if present)', () => {
-    const element = fixture.nativeElement as HTMLElement;
-    const img = element.querySelector('img') as HTMLImageElement | null;
-    if (!img) {
-      fail('Expected avatar <img> to be present');
-    } else {
-      expect(img.src).toContain('avatar.png');
-      // Alt text may vary; verify it contains the user's full name when provided
-      const alt = img.getAttribute('alt') || '';
-      expect(alt).toContain('Jordan');
-      expect(alt).toContain('Smith');
-    }
+  it('should render the avatar image with correct src and alt', () => {
+    const img = (fixture.nativeElement as HTMLElement).querySelector('img');
+
+    expect(img?.src).toContain('avatar.png');
+    expect(img?.getAttribute('alt')).toContain('Jordan');
+    expect(img?.getAttribute('alt')).toContain('Smith');
   });
 
   it('should reflect the `expanded` input as a CSS class, without owning the state itself', () => {

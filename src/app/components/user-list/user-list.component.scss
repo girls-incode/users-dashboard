@@ -15,37 +15,39 @@
   }
 
   /*
-   * Height and bottom gap are both bound per-row from TypeScript (see UserListComponent's `rows`)
-   * and must never be allowed to grow/shrink from their declared values — the virtualizer
-   * positions every row from that declared height alone, it does not measure the DOM. Gap is a
-   * bound `padding-bottom`, not a blanket rule, because an expanded user row's gap collapses to 0
-   * so it sits flush against its own details row right below it. `overflow: hidden` is a
-   * defensive clamp, not the mechanism: content is expected to already fit.
+   * No height or min-height here on purpose — this row is sized entirely by its own content
+   * (`app-user-item`/`app-user-details-card`/`.group-header` are all self-sized from their own
+   * padding, not stretched to fill a guessed slot), so there's never a gap between the real
+   * content and the space reserved for it. `estimateSize` (see UserListComponent's `virtualizer`)
+   * only feeds the virtualizer's own internal positioning math, it never constrains this element's
+   * actual rendered box. Bottom gap is a bound `padding-bottom`, not a blanket rule, because an
+   * expanded user row's gap collapses to 0 so it sits flush against its own details row below it.
    */
   .virtual-item {
     position: absolute;
     left: 0;
     right: 0;
     box-sizing: border-box;
-    overflow: hidden;
   }
 
   app-user-item,
   app-user-details-card {
     display: block;
-    height: 100%;
-    box-sizing: border-box;
   }
 
+  /*
+   * Real vertical padding here (not `height: 100%` of `.virtual-item`) so this header is
+   * self-contained/naturally sized, matching how `.user-item` and `.user-details-card` are already
+   * sized from their own content + padding — none of them depend on inheriting a percentage height
+   * from an ambient parent.
+   */
   .group-header {
-    height: 100%;
-    box-sizing: border-box;
     margin: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0 1.1rem;
+    padding: 16px 1.1rem;
     border-radius: 14px;
     background: linear-gradient(90deg, rgba(vars.$color-blue-900, 0.06), rgba(vars.$color-blue, 0.04));
     overflow: hidden;
@@ -72,13 +74,13 @@
   }
 
   /*
-   * Deliberately no flex-direction/wrap changes here at narrower widths: this row renders inside
-   * a virtual-scroll slot whose height is fixed and known up front (see UserListComponent's
-   * HEADER_CONTENT_HEIGHT) — wrapping onto a second line would grow past that declared height.
+   * Still deliberately no flex-direction/wrap changes at narrower widths — not because it would
+   * break anything now (real measurement self-corrects a taller wrapped row just fine), but to
+   * keep the group header's single-line, scannable look consistent across breakpoints.
    */
   @media (max-width: 720px) {
     .group-header {
-      padding: 0 0.9rem;
+      padding: 16px 0.9rem;
       gap: 0.5rem;
     }
 
