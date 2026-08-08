@@ -1,28 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UserListComponent } from './user-list.component';
 import { UserGroup } from '../../models/grouping.model';
-import { User } from '../../models/user.model';
-
-function makeUser(id: string, firstname: string, lastname: string): User {
-  return new User({
-    firstname,
-    lastname,
-    email: `${firstname}.${lastname}@example.com`.toLowerCase(),
-    login: { uuid: id, username: firstname.toLowerCase(), password: '', salt: '', md5: '', sha1: '', sha256: '' }
-  });
-}
+import { createMockUser } from '../../testing.helpers';
 
 const mockGroups: UserGroup[] = [
   {
     title: 'A',
     count: 1,
-    users: [makeUser('uuid-1', 'Ava', 'Allen')]
+    users: [createMockUser({ firstname: 'Ava', lastname: 'Allen' })]
   }
 ];
 
 const multiGroupMocks: UserGroup[] = [
-  { title: 'A', count: 1, users: [makeUser('uuid-a', 'Ava', 'Allen')] },
-  { title: 'B', count: 1, users: [makeUser('uuid-b', 'Bob', 'Baker')] }
+  { title: 'A', count: 1, users: [createMockUser({ firstname: 'Ava', lastname: 'Allen' })] },
+  { title: 'B', count: 1, users: [createMockUser({ firstname: 'Bob', lastname: 'Baker' })] }
 ];
 
 describe('UserListComponent', () => {
@@ -79,9 +70,6 @@ describe('UserListComponent', () => {
     // TanStack estimate, so there's never a gap between a row's real content and its slot.
     items.forEach(item => expect(item.style.top).toMatch(/^\d+px$/));
   });
-
-  // Expanding a row to insert its details row, then collapsing to remove it, is covered end to
-  // end in e2e/app.spec.ts against the real app rather than re-asserted here in isolation.
 
   it('should flatten multiple groups in order: each group\'s header immediately followed by its own users', async () => {
     fixture.componentRef.setInput('groups', multiGroupMocks);

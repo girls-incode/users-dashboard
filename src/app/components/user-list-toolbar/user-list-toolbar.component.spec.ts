@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl } from '@angular/forms';
 import { GroupOption, UserListToolbarComponent } from './user-list-toolbar.component';
 
 describe('UserListToolbarComponent', () => {
@@ -15,7 +14,7 @@ describe('UserListToolbarComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserListToolbarComponent);
-    fixture.componentRef.setInput('searchControl', new FormControl('', { nonNullable: true }));
+    fixture.componentRef.setInput('search', '');
     fixture.componentRef.setInput('groupOptions', groupOptions);
     fixture.componentRef.setInput('selectedGroup', 'name');
     fixture.componentRef.setInput('currentPage', 1);
@@ -34,8 +33,4 @@ describe('UserListToolbarComponent', () => {
     expect((element.querySelector('.group-button') as HTMLButtonElement).getAttribute('aria-pressed')).toBe('true');
     expect((element.querySelector('.page-controls button') as HTMLButtonElement).disabled).toBe(true);
   });
-
-  // Clicking the group/pagination controls and observing the app respond (grouping changes, page
-  // advances) is covered end to end in e2e/app.spec.ts against the real, wired-up app rather than
-  // re-asserted here via isolated output-event subscriptions.
 });

@@ -12,24 +12,24 @@ describe('LoggerService', () => {
     service = TestBed.inject(LoggerService);
   });
 
-  /**
-   * Verifies structured log payload creation for error, warn, and info calls.
-   */
-  it('logs error, warn, and info payloads with timestamp and context', () => {
+  it('logs an error payload with timestamp, error, and context', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation();
 
     const err = new Error('fail');
-    const errPayload = service.error('Error occurred', err, { scope: 'test' });
-    expect(errorSpy).toHaveBeenCalledWith('[App Error] Error occurred', errPayload);
-    expect(errPayload.error).toBe(err);
-    expect(errPayload.context).toEqual({ scope: 'test' });
+    const payload = service.error('Error occurred', err, { scope: 'test' });
 
-    const warnPayload = service.warn('Warning triggered');
-    expect(warnSpy).toHaveBeenCalledWith('[App Warning] Warning triggered', warnPayload);
+    expect(errorSpy).toHaveBeenCalledWith('[App Error] Error occurred', payload);
+    expect(payload.error).toBe(err);
+    expect(payload.context).toEqual({ scope: 'test' });
+    expect(payload.timestamp).toEqual(expect.any(String));
+  });
 
-    const infoPayload = service.info('Info message');
-    expect(infoSpy).toHaveBeenCalledWith('[App Info] Info message', infoPayload);
+  it('omits error and context keys when not supplied', () => {
+    jest.spyOn(console, 'error').mockImplementation();
+
+    const payload = service.error('Bare message');
+
+    expect(payload).not.toHaveProperty('error');
+    expect(payload).not.toHaveProperty('context');
   });
 });

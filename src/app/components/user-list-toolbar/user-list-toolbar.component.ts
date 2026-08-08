@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, input, model, output } from '@angular/core';
 import { GroupBy } from '../../models/grouping.model';
 
 export interface GroupOption {
@@ -12,11 +11,10 @@ export interface GroupOption {
   standalone: true,
   templateUrl: './user-list-toolbar.component.html',
   styleUrls: ['./user-list-toolbar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserListToolbarComponent {
-  searchControl = input.required<FormControl<string>>();
+  search = model.required<string>();
   groupOptions = input.required<readonly GroupOption[]>();
   selectedGroup = input.required<GroupBy>();
   currentPage = input.required<number>();

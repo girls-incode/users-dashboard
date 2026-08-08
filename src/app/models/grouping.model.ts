@@ -13,15 +13,14 @@ export type UserPayload = Partial<User>;
 export interface WorkerMessage {
     type: 'group';
     requestId: number;
-    users: UserPayload[];
+    /**
+     * Only sent when the user array itself changed (i.e. a new page loaded). The worker keeps the
+     * last set it received, so re-grouping or re-searching the same page doesn't re-clone all
+     * 5,000 users across the thread boundary on every keystroke.
+     */
+    users?: UserPayload[];
     groupBy: GroupBy;
     search: string;
-}
-
-export interface GroupResult {
-    title: string;
-    users: UserPayload[];
-    count: number;
 }
 
 export interface IndexedGroupResult {

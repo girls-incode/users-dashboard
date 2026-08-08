@@ -1,23 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UserItemComponent } from './user-item.component';
-import { User } from '../../models/user.model';
-
-const mockUser = new User({
-  firstname: 'Jordan',
-  lastname: 'Smith',
-  email: 'jordan.smith@example.com',
-  nat: 'US',
-  gender: 'male',
-  age: 30,
-  phone: '555-1234',
-  location: { city: 'Austin', country: 'United States' },
-  login: { uuid: 'uuid-user-1', username: 'jordansmith', password: '', salt: '', md5: '', sha1: '', sha256: '' },
-  image: 'https://example.com/avatar.png'
-});
+import { createMockUser } from '../../testing.helpers';
 
 describe('UserItemComponent', () => {
   let component: UserItemComponent;
   let fixture: ComponentFixture<UserItemComponent>;
+
+  const mockUser = createMockUser({
+    firstname: 'Jordan',
+    lastname: 'Smith',
+    email: 'jordan.smith@example.com',
+    age: 30,
+    image: 'https://example.com/avatar.png'
+  });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -73,16 +68,11 @@ describe('UserItemComponent', () => {
 
   it('should handle missing optional fields gracefully', async () => {
     // Create a user without email and image
-    const incompleteUser = new User({
+    const incompleteUser = createMockUser({
       firstname: 'NoImg',
       lastname: 'User',
       email: '',
-      nat: 'US',
-      gender: 'female',
       age: 25,
-      phone: '',
-      location: { city: '', country: '' },
-      login: { uuid: 'uuid-user-2', username: 'noimguser', password: '', salt: '', md5: '', sha1: '', sha256: '' },
       image: ''
     });
 

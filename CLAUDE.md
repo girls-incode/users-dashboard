@@ -30,9 +30,9 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
 ### Main Flow: `AppComponent` → Web Worker → Components
 
 1. **`AppComponent` (state container)**
-   - Holds all app state as signals: `users`, `groups`, `isLoading`, `selectedGroup`, `searchControl`, `currentPage`
-   - Manages the Web Worker lifecycle and forwards grouping requests
-   - Subscribes to form control changes (search input) with debounce (220ms, 3+ chars to filter)
+   - Holds all app state as signals: `users`, `groups`, `isLoading`, `selectedGroup`, `search`, `currentPage`
+   - Delegates the Web Worker lifecycle to `GroupUsersWorkerService` and forwards grouping requests
+   - Bridges the `search` signal to RxJS via `toObservable()` for debouncing (220ms, 3+ chars to filter)
    - Handles API errors and worker errors with a global error message
 
 2. **`UsersService`**
@@ -41,7 +41,8 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
    - Called on page load and navigation
 
 3. **`group-users.worker.ts` (off-main-thread)**
-   - Receives a message with users, search text, and grouping strategy
+   - Receives a message with search text and grouping strategy; the user array is only sent when it
+     changes (a new page), and cached in the worker between requests
    - Runs `filterUserIndexes()` (search) and `groupUserIndexes()` (group/sort)
    - Posts back *index arrays* (not cloned user objects) to avoid expensive serialization
    - `AppComponent` maps indices back to users on receipt
@@ -92,8 +93,8 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
 
 ### Signals vs. RxJS
 
-- **Signals** — component state, UI toggles, expanded rows, search input, grouping strategy.
-- **RxJS** — only at async boundaries: `HttpClient`, debounced search input, simulated detail fetch, `shareReplay` caching.
+- **Signals** — component state, UI toggles, expanded rows, search input, grouping strategy. The app has no dependency on `@angular/forms`; the search box is a plain signal bridged to the toolbar with `model()`.
+- **RxJS** — only at async boundaries: `HttpClient`, debounced search input (via `toObservable()`), simulated detail fetch, `shareReplay` caching.
 - This keeps the signal graph simple and RxJS concerns scoped to I/O.
 
 ## Testing

@@ -1,5 +1,12 @@
-import type { WorkerMessage } from '../models/grouping.model';
-import { filterUserIndexes, groupUserIndexes } from './group-users';
+import type { UserPayload, WorkerMessage } from '../models/grouping.model';
+import { filterUserIndexes, groupUserIndexes, normalizeSearch } from './group-users';
+
+/**
+ * The last user set received from the main thread. Grouping and searching both run against the
+ * same page of users, so the main thread sends them once per page load and omits them afterwards
+ * (see `WorkerMessage.users`) — this holds them between requests.
+ */
+let cachedUsers: UserPayload[] = [];
 
 /* Worker handler: receive grouping requests from the main thread, filter/search users, group them, then post back the grouped result. */
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
@@ -7,22 +14,28 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
     return;
   }
 
+  const { requestId, users, groupBy, search } = event.data;
+
   try {
-    const filteredIndexes = filterUserIndexes(event.data.users, event.data.search);
-    const groups = groupUserIndexes(event.data.users, event.data.groupBy, filteredIndexes);
+    if (users) {
+      cachedUsers = users;
+    }
 
-    self.postMessage({ requestId: event.data.requestId, groups });
+    // Below 3 characters nothing is filtered out, so skip building an all-indexes array and let
+    // groupUserIndexes walk the users directly.
+    const filteredIndexes = normalizeSearch(search).length >= 3
+      ? filterUserIndexes(cachedUsers, search)
+      : undefined;
+
+    self.postMessage({ requestId, groups: groupUserIndexes(cachedUsers, groupBy, filteredIndexes) });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
     self.postMessage({
-      requestId: event.data.requestId,
+      requestId,
       error: {
-        message: errorMessage,
-        stack: errorStack,
-        groupBy: event.data.groupBy,
-        searchLength: event.data.search?.length ?? 0
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        groupBy,
+        searchLength: search?.length ?? 0
       }
     });
   }

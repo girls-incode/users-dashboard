@@ -5,7 +5,7 @@
 </header>
 
 <main class="page-content">
-  <app-user-list-toolbar [searchControl]="searchControl" [groupOptions]="groupOptions" [selectedGroup]="selectedGroup()"
+  <app-user-list-toolbar [(search)]="search" [groupOptions]="groupOptions" [selectedGroup]="selectedGroup()"
     [currentPage]="currentPage()" (groupChange)="selectGroup($event)" (previousPage)="previousPage()"
     (nextPage)="nextPage()" />
 

@@ -1,18 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UserDetailsCardComponent } from './user-details-card.component';
-import { User } from '../../models/user.model';
-
-const mockUser = new User({
-  id: 'user-1',
-  age: 30,
-  gender: 'female',
-  phone: '555-1234',
-  login: { uuid: 'user-1', username: 'adalovelace', password: '', salt: '', md5: '', sha1: '', sha256: '' }
-});
+import { createMockUser } from '../../testing.helpers';
 
 describe('UserDetailsCardComponent', () => {
   let component: UserDetailsCardComponent;
   let fixture: ComponentFixture<UserDetailsCardComponent>;
+
+  const mockUser = createMockUser({
+    age: 30,
+    gender: 'female',
+    phone: '555-1234'
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [UserDetailsCardComponent] });

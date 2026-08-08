@@ -1,10 +1,8 @@
-<div align="center">
-  <img src="public/logo.svg" alt="Awork" width="260" height="72" />
-</div>
-
 # Awork Users Dashboard
 
 A **signals-first Angular 20 app** that loads and virtualizes a large, filterable, searchable list of ~5,000 users from randomuser.me. Features off-thread grouping via Web Worker, real-time search, pagination, and lazy-loaded expandable user details.
+
+<img src="public/awork-users-dashboard-filter-by-country-name.png" width="100%"/>
 
 ## Core Features
 
@@ -24,7 +22,7 @@ flowchart TD
     API[("randomuser.me")] -->|"HTTP, 5000 users/page"| UsersService
     UsersService --> AppComponent
 
-    AppComponent <-->|"postMessage: users, groupBy, search<br/>⇠ grouped index arrays"| Worker["group-users.worker.ts<br/>(background thread)"]
+    AppComponent <-->|"postMessage: groupBy, search<br/>(users only when the page changes)<br/>⇠ grouped index arrays"| Worker["group-users.worker.ts<br/>(background thread)"]
 
     AppComponent -->|"search / group / page controls"| Toolbar[UserListToolbarComponent]
     AppComponent -->|"groups"| UserList[UserListComponent<br/>flattened + virtualized]
@@ -71,7 +69,7 @@ flowchart TD
 - **Performance gain**: Rebuild only affected indices on expand/collapse; TanStack's `setRenderedRange` no-ops on unchanged scroll position (scroll delta + array length change is still cheap)
 
 ### 4. Debounced Input + Request IDs
-- **Pattern**: `searchControl` uses `debounceTime(220)` + `distinctUntilChanged()`; each worker/API call tagged with request ID; stale responses ignored
+- **Pattern**: the `search` signal is bridged to RxJS with `toObservable()` + `debounceTime(220)`; each worker/API call tagged with request ID; stale responses ignored
 - **Why request IDs**: Rapid interactions (filter → clear → filter) can race; old results clobber new ones without tracking
 - **Performance gain**: Prevents UI flicker from stale updates; debounce saves ~80% of worker thrashing on typing
 
@@ -93,7 +91,7 @@ Requires **Node.js 20+** and **npm**.
 ```bash
 npm install
 npm run build
-npm start              # Dev server at http://localhost:4200/
+npm run start              # Dev server at http://localhost:4200/
 ```
 
 ### Testing

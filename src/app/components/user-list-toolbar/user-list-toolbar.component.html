@@ -1,8 +1,9 @@
 <section class="toolbar">
   <div class="toolbar__row">
     <div class="search-box">
-      <input id="search" [formControl]="searchControl()" minlength="3" aria-label="Search users by name"
-        placeholder="Search by name (min 3 characters)" />
+      <input id="search" #searchInput minlength="3" aria-label="Search users by name"
+        placeholder="Search by name (min 3 characters)"
+        [value]="search()" (input)="search.set(searchInput.value)" />
     </div>
 
     <div class="group-buttons">

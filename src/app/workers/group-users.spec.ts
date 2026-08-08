@@ -1,4 +1,4 @@
-import { filterUsers, filterUserIndexes, groupUserIndexes, groupUsers, normalizeSearch } from './group-users';
+import { filterUserIndexes, getGroupKey, groupUserIndexes, normalizeSearch } from './group-users';
 import { UserPayload } from '../models/grouping.model';
 
 const users: UserPayload[] = [
@@ -8,41 +8,60 @@ const users: UserPayload[] = [
   { lastname: 'Unknown' }
 ];
 
+describe('getGroupKey', () => {
+  it('returns the uppercased first letter of first or last name, or an em dash fallback', () => {
+    expect(getGroupKey({ firstname: 'Zoe' }, 'name')).toBe('Z');
+    expect(getGroupKey({ lastname: 'Unknown' }, 'name')).toBe('U');
+    expect(getGroupKey({}, 'name')).toBe('—');
+  });
+
+  it('buckets ages into 10-year brackets with an unknown fallback', () => {
+    expect(getGroupKey({ age: 19 }, 'age')).toBe('Under 20');
+    expect(getGroupKey({ age: 20 }, 'age')).toBe('20-29');
+    expect(getGroupKey({ age: 50 }, 'age')).toBe('50+');
+    expect(getGroupKey({}, 'age')).toBe('Unknown age');
+  });
+
+  it('falls back for missing nationality and country', () => {
+    expect(getGroupKey({ nat: 'US' }, 'nationality')).toBe('US');
+    expect(getGroupKey({}, 'nationality')).toBe('Unknown nationality');
+    expect(getGroupKey({ location: { country: 'Germany' } as any }, 'country')).toBe('Germany');
+    expect(getGroupKey({}, 'country')).toBe('Unknown country');
+  });
+});
+
 describe('group-users helpers', () => {
   it('normalizes whitespace and casing in search queries', () => {
     expect(normalizeSearch('  Alice ')).toBe('alice');
     expect(normalizeSearch('')).toBe('');
   });
 
-  it('filters case-insensitively by first name, last name, full name, or country', () => {
-    expect(filterUsers(users, 'alice')).toEqual([users[1]]);
-    expect(filterUsers(users, 'Anderson')).toEqual([users[1]]);
-    expect(filterUsers(users, 'Alice Anderson')).toEqual([users[1]]);
-    expect(filterUsers(users, 'Germany')).toEqual([users[0]]);
-    expect(filterUsers(users, 'United States')).toEqual([users[1], users[2]]);
-    expect(filterUsers(users, 'Al')).toBe(users);
-    expect(filterUsers(users, 'Austin')).toEqual([]);
-    expect(filterUsers(users, 'missing')).toEqual([]);
-    expect(filterUsers(users, '   ')).toBe(users);
+  it('filters case-insensitively by first name, last name, or full name', () => {
+    expect(filterUserIndexes(users, 'alice')).toEqual([1]);
+    expect(filterUserIndexes(users, 'Anderson')).toEqual([1]);
+    expect(filterUserIndexes(users, 'Alice Anderson')).toEqual([1]);
+    expect(filterUserIndexes(users, 'Zoe')).toEqual([0]);
+    expect(filterUserIndexes(users, 'Bob')).toEqual([2]);
+    expect(filterUserIndexes(users, 'Germany')).toEqual([]);
+    expect(filterUserIndexes(users, 'Austin')).toEqual([]);
+    expect(filterUserIndexes(users, 'missing')).toEqual([]);
   });
 
-  it('preserves original indexes when filtering users', () => {
-    expect(filterUserIndexes(users, 'Alice')).toEqual([1]);
+  it('matches every user when the query is under 3 characters', () => {
+    expect(filterUserIndexes(users, 'Al')).toEqual([0, 1, 2, 3]);
+    expect(filterUserIndexes(users, '   ')).toEqual([0, 1, 2, 3]);
+  });
+
+  it('groups only the given source indexes, preserving original positions', () => {
     expect(groupUserIndexes(users, 'country', [1])).toEqual([
       { title: 'United States', userIndexes: [1], count: 1 }
     ]);
   });
 
   it('groups name values, including missing names, and sorts users within a group', () => {
-    const groups = groupUsers(users, 'name');
-
-    expect(groups.map(group => group.title)).toEqual(['A', 'B', 'U', 'Z']);
-    expect(groups.find(group => group.title === 'A')).toMatchObject({ count: 1, users: [users[1]] });
-  });
-
-  it('returns sorted indexes for worker responses without cloning user objects', () => {
     const groups = groupUserIndexes(users, 'name');
 
+    expect(groups.map(group => group.title)).toEqual(['A', 'B', 'U', 'Z']);
     expect(groups.find(group => group.title === 'A')).toEqual({ title: 'A', userIndexes: [1], count: 1 });
   });
 
@@ -51,6 +70,6 @@ describe('group-users helpers', () => {
     ['nationality', ['DE', 'Unknown nationality', 'US']],
     ['country', ['Germany', 'United States', 'Unknown country']]
   ] as const)('groups users by %s and assigns fallback groups', (groupBy, titles) => {
-    expect(groupUsers(users, groupBy).map(group => group.title)).toEqual(titles);
+    expect(groupUserIndexes(users, groupBy).map(group => group.title)).toEqual(titles);
   });
 });
