@@ -22,9 +22,10 @@ flowchart TD
     API[("randomuser.me")] -->|"HTTP, 5000 users/page"| UsersService
     UsersService --> AppComponent
 
-    AppComponent <-->|"postMessage: groupBy, search<br/>(users only when the page changes)<br/>⇠ grouped index arrays"| Worker["group-users.worker.ts<br/>(background thread)"]
+    AppComponent -->|"groupUsers(payload, groupBy, search)"| WorkerService[GroupUsersWorkerService<br/>owns worker + request IDs]
+    WorkerService <-->|"postMessage: groupBy, search<br/>(users only when the page changes)<br/>⇠ grouped index arrays"| Worker["group-users.worker.ts<br/>(background thread)"]
 
-    AppComponent -->|"search / group / page controls"| Toolbar[UserListToolbarComponent]
+    AppComponent <-->|"search / group / page controls"| Toolbar[UserListToolbarComponent]
     AppComponent -->|"groups"| UserList[UserListComponent<br/>flattened + virtualized]
 
     UserList -->|"one row each"| UserItem[UserItemComponent]
@@ -33,12 +34,13 @@ flowchart TD
 ```
 
 **Component breakdown:**
-- **`AppComponent`** — state container holding grouping, search, pagination, and worker lifecycle
-- **`UserListToolbarComponent`** — search/group/pagination controls (presentational only)
+- **`AppComponent`** — state container holding users, groups, search, grouping strategy and pagination as signals
+- **`UserListToolbarComponent`** — search/group/pagination controls (presentational; search is a two-way `model()`)
 - **`UsersService`** — fetches 5,000 users/page and maps API shape to `User` model
+- **`GroupUsersWorkerService`** — owns the worker's lifecycle, tags each request with an ID and drops superseded responses, exposing a plain `Observable`
 - **`group-users.worker.ts`** — filters, groups, and sorts off main thread; returns index arrays
 - **`UserListComponent`** — flattens groups into one virtualized list
-- **`UserItemComponent`** — stateless collapsed row display
+- **`UserItemComponent`** — stateless collapsed row; the whole card is clickable and emits `toggle`
 - **`UserDetailsCardComponent`** + **`UserDetailsService`** — lazy-loaded, cached user details
 
 ## Why This Architecture
@@ -46,8 +48,11 @@ flowchart TD
 | Decision | Benefit |
 |----------|---------|
 | **Web Worker + Index Arrays** | Grouping 5,000 objects off-thread is fast; posting indices (not cloned users) avoids expensive serialization and keeps messages small |
+| **Worker Caches the User Array** | Users cross the thread boundary once per page, not once per keystroke; re-grouping and re-searching send only `{ groupBy, search }` |
+| **Slim Worker Payload** | The worker receives the five fields it actually reads, not whole `User` objects — no email, phone, image or login hashes cloned and retained off-thread |
 | **Fully Flattened List** | Groups don't nest in separate containers; one list virtualizes against the real scrollbar (not per-group boxes) for accurate scroll positioning |
 | **Expand Inserts a Row** | Expanding inserts a sibling details row instead of resizing; virtualization knows the array length changed; CSS height changes would confuse sizing |
+| **List Stays Mounted While Re-grouping** | Re-grouping dims the list in place instead of swapping it for a spinner; unmounting would discard the virtualizer's measured row sizes and reset the window scroll on every search |
 | **Signals + OnPush Change Detection** | Every component uses `ChangeDetectionStrategy.OnPush` with signals; RxJS handles async boundaries only (HTTP, debounce, fetch), keeping signal graph simple |
 | **Lazy Details with RxJS Cache** | Simulates genuine lazy loading; `shareReplay` caches results (bounded at 200) to avoid growing memory in long sessions |
 
@@ -60,29 +65,30 @@ flowchart TD
 
 ### 2. Off-Thread Filtering & Grouping
 - **Pattern**: Web Worker processes `filterUserIndexes()` and `groupUserIndexes()` logic; returns index arrays mapped back to users on main thread
-- **Why index arrays**: Serializing 5,000 objects across the worker boundary is expensive; indices keep messages tiny (~100KB) and avoid object cloning
-- **Performance gain**: 220ms search debounce + 3-char minimum means worker runs ~5 times less often; main thread stays responsive during heavy sorting
+- **Why index arrays**: Serializing 5,000 objects across the worker boundary is expensive; indices keep the response tiny and avoid object cloning
+- **Both directions matter**: the request side is cached too — the worker keeps the last user array it received, so only `{ groupBy, search }` crosses on a re-group or re-search. Users are resent only when the page changes
+- **Slim payload**: `UserPayload` is an explicit five-field interface (`firstname`, `lastname`, `age`, `nat`, `country`), not `Partial<User>` — the worker never receives the email, phone, image or login hashes it has no use for
 
 ### 3. Flat Row Array with Splice-In Details
-- **Pattern**: `baseRows` signal (headers + users) + computed `rows` signal splices in `DetailsRow` objects for expanded users
+- **Pattern**: `baseRows` computed (headers + users) + a `rows` computed that splices in `details` rows for expanded users
 - **Why splice**: Virtualization sees array length change; CSS-hidden rows confuse height estimation
-- **Performance gain**: Rebuild only affected indices on expand/collapse; TanStack's `setRenderedRange` no-ops on unchanged scroll position (scroll delta + array length change is still cheap)
+- **Why two computeds**: `baseRows` depends only on `groups`, so expanding or collapsing never rebuilds it — and with nothing expanded, `rows` returns `baseRows` untouched
 
 ### 4. Debounced Input + Request IDs
 - **Pattern**: the `search` signal is bridged to RxJS with `toObservable()` + `debounceTime(220)`; each worker/API call tagged with request ID; stale responses ignored
 - **Why request IDs**: Rapid interactions (filter → clear → filter) can race; old results clobber new ones without tracking
-- **Performance gain**: Prevents UI flicker from stale updates; debounce saves ~80% of worker thrashing on typing
+- **Why 3-char minimum**: below the threshold the search is treated as empty, so short prefixes that match nearly everything never reach the worker
 
 ### 5. Lazy-Loaded Details with Bounded Cache
-- **Pattern**: `UserDetailsService` uses RxJS `shareReplay(1, 200)` (bounded FIFO eviction at 200 entries)
-- **Why lazy**: Details aren't needed until expand; avoids fetching for 5,000 users upfront
-- **Why cache**: Re-expanding the same user or scrolling past/back to a user is instant; bounded cache prevents unbounded memory growth in long sessions
-- **Performance gain**: Details only "fetched" (simulated via `delay`) on first expand; bounded memory even after expanding 1,000+ unique users
+- **Pattern**: `UserDetailsService` pipes each result through `shareReplay({ bufferSize: 1, refCount: false })` and stores the observable in a `Map` capped at 200 entries with FIFO eviction
+- **Why lazy**: Details aren't needed until expand; avoids building view models for 5,000 users upfront
+- **Why `refCount: false`**: the cached result survives all subscribers unsubscribing, so collapsing and re-expanding a row is instant rather than re-running the simulated fetch
+- **Users without a stable id are not cached** — sharing one placeholder key would hand every such user the first one's details
 
-### 6. Locale-Aware Sorting with Reused Collator
-- **Pattern**: Worker creates one `Intl.Collator(locale, { numeric: true })` per sort operation; reuses it for all pair comparisons
-- **Why reuse**: Creating a new collator per pair is slow and wasteful (same config repeated)
-- **Performance gain**: ~3× faster sorts on large lists with non-ASCII characters
+### 6. Locale-Aware Sorting with a Shared Collator
+- **Pattern**: one module-level `Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })` is reused for every comparison, in every grouping operation
+- **Why reuse**: constructing a collator is comparatively expensive, and doing it per comparison would repeat identical configuration thousands of times per sort
+- **Why `sensitivity: 'base'`**: case and accent differences don't reorder names, so grouping stays stable across locales
 
 ## Setup and Running
 

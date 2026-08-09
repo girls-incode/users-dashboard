@@ -41,6 +41,19 @@ test('switches grouping and reflects the active state', async ({ page }) => {
   await expect(page.locator('.group-header__title').first()).toBeVisible();
 });
 
+test('groups by country using real country names, not the unknown fallback', async ({ page }) => {
+  await loadApp(page);
+
+  await page.getByRole('button', { name: 'Country' }).click();
+
+  // The worker receives a slimmed user projection; if `country` ever stops being carried across
+  // that boundary, every user silently lands in 'Unknown country' rather than erroring.
+  const firstGroup = page.locator('.group-header__title').first();
+  await expect(firstGroup).toBeVisible();
+  await expect(firstGroup).not.toHaveText('Unknown country');
+  await expect(page.getByText(`Users: ${MockResult.results.length}`)).toBeVisible();
+});
+
 test('search: below 3 characters does nothing, 3+ filters, clearing restores the full list', async ({ page }) => {
   await loadApp(page);
 

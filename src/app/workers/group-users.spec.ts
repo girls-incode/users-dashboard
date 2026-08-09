@@ -2,9 +2,9 @@ import { filterUserIndexes, getGroupKey, groupUserIndexes, normalizeSearch } fro
 import { UserPayload } from '../models/grouping.model';
 
 const users: UserPayload[] = [
-  { firstname: 'Zoe', lastname: 'Zimmer', age: 19, nat: 'DE', location: { city: 'Berlin', country: 'Germany' } },
-  { firstname: 'Alice', lastname: 'Anderson', age: 20, nat: 'US', location: { city: 'Austin', country: 'United States' }, login: { uuid: '1', username: 'alice', password: '', salt: '', md5: '', sha1: '', sha256: '' } },
-  { firstname: 'Bob', lastname: 'Brown', age: 50, nat: 'US', location: { city: 'Boston', country: 'United States' } },
+  { firstname: 'Zoe', lastname: 'Zimmer', age: 19, nat: 'DE', country: 'Germany' },
+  { firstname: 'Alice', lastname: 'Anderson', age: 20, nat: 'US', country: 'United States' },
+  { firstname: 'Bob', lastname: 'Brown', age: 50, nat: 'US', country: 'United States' },
   { lastname: 'Unknown' }
 ];
 
@@ -25,7 +25,7 @@ describe('getGroupKey', () => {
   it('falls back for missing nationality and country', () => {
     expect(getGroupKey({ nat: 'US' }, 'nationality')).toBe('US');
     expect(getGroupKey({}, 'nationality')).toBe('Unknown nationality');
-    expect(getGroupKey({ location: { country: 'Germany' } as any }, 'country')).toBe('Germany');
+    expect(getGroupKey({ country: 'Germany' }, 'country')).toBe('Germany');
     expect(getGroupKey({}, 'country')).toBe('Unknown country');
   });
 });

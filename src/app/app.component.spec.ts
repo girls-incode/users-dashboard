@@ -15,6 +15,14 @@ describe('AppComponent', () => {
   let userServiceMock: UsersServiceMock;
   let workerServiceMock: GroupUsersWorkerServiceMock;
   const mockUsers = User.mapFromUserResult(MockResult.results as UserResult[]);
+  // The worker receives a slim projection, not the full User objects — see AppComponent.workerPayload.
+  const mockPayload = mockUsers.map(user => ({
+    firstname: user.firstname,
+    lastname: user.lastname,
+    age: user.age,
+    nat: user.nat,
+    country: user.location?.country
+  }));
 
   beforeEach(async () => {
     userServiceMock = new UsersServiceMock();
@@ -47,7 +55,7 @@ describe('AppComponent', () => {
 
     expect(userServiceMock.getUsers).toHaveBeenCalledWith(1);
     expect(workerServiceMock.groupUsers).toHaveBeenCalledWith(
-      mockUsers,
+      mockPayload,
       'name',
       ''
     );
@@ -62,7 +70,7 @@ describe('AppComponent', () => {
 
     expect(component.selectedGroup()).toBe('age');
     expect(workerServiceMock.groupUsers).toHaveBeenCalledWith(
-      mockUsers,
+      mockPayload,
       'age',
       ''
     );
@@ -116,7 +124,7 @@ describe('AppComponent', () => {
       fixture.detectChanges();
       jest.advanceTimersByTime(220);
       expect(workerServiceMock.groupUsers).toHaveBeenCalledWith(
-        mockUsers,
+        mockPayload,
         'name',
         'Ali'
       );
@@ -125,7 +133,7 @@ describe('AppComponent', () => {
       fixture.detectChanges();
       jest.advanceTimersByTime(220);
       expect(workerServiceMock.groupUsers).toHaveBeenLastCalledWith(
-        mockUsers,
+        mockPayload,
         'name',
         ''
       );
@@ -185,5 +193,26 @@ describe('AppComponent', () => {
       expect.anything(),
       expect.anything()
     );
+  });
+
+  it('should discard an in-flight grouping request when a page loads with no users', () => {
+    // Page 1 loads and starts grouping; that request is still in flight.
+    component.ngOnInit();
+    expect(component.isGrouping()).toBe(true);
+
+    // The next page comes back empty, which clears the groups.
+    userServiceMock.getUsers.mockReturnValueOnce(of([]));
+    component.nextPage();
+
+    expect(component.groups()).toEqual([]);
+    expect(component.isGrouping()).toBe(false);
+
+    // The page-1 response arriving late must not repopulate the list we just cleared.
+    workerServiceMock.groupUsersSubject.next([
+      { title: 'A', count: 1, userIndexes: [0] }
+    ]);
+
+    expect(component.groups()).toEqual([]);
+    expect(component.isGrouping()).toBe(false);
   });
 });

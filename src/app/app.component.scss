@@ -40,6 +40,13 @@
     padding: 3rem;
   }
 
+  // Re-grouping an already-rendered list dims it in place rather than unmounting it, so the
+  // virtualizer keeps its measured row sizes and the page keeps its scroll position.
+  .list-wrap--busy {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
   .loading-spinner {
     width: 48px;
     height: 48px;

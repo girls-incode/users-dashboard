@@ -7,7 +7,7 @@ import { UsersService } from './services/users.service';
 import { GroupUsersWorkerService } from './services/group-users-worker.service';
 import { User } from './models/user.model';
 import { LoggerService } from './services/logger.service';
-import { GroupBy, UserGroup } from './models/grouping.model';
+import { GroupBy, UserGroup, UserPayload } from './models/grouping.model';
 import { UserListComponent } from './components/user-list/user-list.component';
 import { GroupOption, UserListToolbarComponent } from './components/user-list-toolbar/user-list-toolbar.component';
 
@@ -33,9 +33,31 @@ export class AppComponent implements OnInit, OnDestroy {
   isLoading = signal(true);
   isGrouping = signal(false);
   errorMessage = signal<string | null>(null);
+
+  /**
+   * Full-panel spinner only when there's nothing to show yet. Re-grouping an already-rendered list
+   * keeps it mounted and dims it instead — unmounting would destroy the virtualizer, its measured
+   * row sizes and the expanded rows, and collapse the page height so the window scroll resets.
+   */
+  showSpinner = computed(() => this.isLoading() || (this.isGrouping() && !this.groups().length));
   selectedGroup = signal<GroupBy>('name');
   search = signal('');
   currentPage = signal(1);
+
+  /**
+   * The slim projection sent to the worker. Computed (not mapped per request) for two reasons: it
+   * would otherwise rebuild 5,000 objects on every keystroke, and the worker service decides whether
+   * to resend the array by reference — a fresh array each time would defeat that cache.
+   */
+  private readonly workerPayload = computed<UserPayload[]>(() =>
+    this.users().map(user => ({
+      firstname: user.firstname,
+      lastname: user.lastname,
+      age: user.age,
+      nat: user.nat,
+      country: user.location?.country
+    }))
+  );
 
   readonly groupOptions: readonly GroupOption[] = [
     { value: 'name', label: 'Name' },
@@ -116,6 +138,10 @@ export class AppComponent implements OnInit, OnDestroy {
   private updateGroups(): void {
     const users = this.users();
     if (!users.length) {
+      // Cancel any in-flight request too — otherwise a response for the previous page lands after
+      // this and repopulates the groups we just cleared, leaving isGrouping stuck on.
+      this.groupingRequest?.unsubscribe();
+      this.isGrouping.set(false);
       this.groups.set([]);
       return;
     }
@@ -125,7 +151,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.groupingRequest?.unsubscribe();
     this.isGrouping.set(true);
     this.groupingRequest = this.groupUsersWorker
-      .groupUsers(users, this.selectedGroup(), this.activeSearch)
+      .groupUsers(this.workerPayload(), this.selectedGroup(), this.activeSearch)
       .subscribe({
         next: (groupedIndices) => {
           const groups = groupedIndices.map(group => ({

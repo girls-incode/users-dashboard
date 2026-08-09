@@ -51,7 +51,7 @@ export function getGroupKey(user: UserPayload, groupBy: GroupBy): string {
     case 'nationality':
       return user.nat || 'Unknown nationality';
     case 'country':
-      return user.location?.country || 'Unknown country';
+      return user.country || 'Unknown country';
     default:
       return 'Unknown';
   }

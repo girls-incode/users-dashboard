@@ -10,8 +10,8 @@
     (nextPage)="nextPage()" />
 
   <section class="list-panel">
-    @if (isLoading() || isGrouping()) {
-    <div class="loading-state">
+    @if (showSpinner()) {
+    <div class="loading-state" role="status" aria-label="Loading users">
       <div class="loading-spinner"></div>
     </div>
     } @else if (errorMessage()) {
@@ -20,7 +20,9 @@
     @if (groups().length) {
     <p class="list-count">Users: {{ displayedUserCount() }}</p>
     }
-    <app-user-list [groups]="groups()"></app-user-list>
+    <div class="list-wrap" [class.list-wrap--busy]="isGrouping()" [attr.aria-busy]="isGrouping()">
+      <app-user-list [groups]="groups()"></app-user-list>
+    </div>
     }
   </section>
 </main>

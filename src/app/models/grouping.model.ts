@@ -8,7 +8,13 @@ export interface UserGroup {
     count: number;
 }
 
-export type UserPayload = Partial<User>;
+export interface UserPayload {
+    firstname?: string;
+    lastname?: string;
+    age?: number;
+    nat?: string;
+    country?: string;
+}
 
 export interface WorkerMessage {
     type: 'group';

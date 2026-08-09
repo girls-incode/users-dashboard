@@ -48,20 +48,22 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
    - `AppComponent` maps indices back to users on receipt
 
 4. **`UserListComponent`**
-   - Flattens `groups: UserGroup[]` into one `rows` signal: `[header, user, details?, header, user, ...]`
-   - The `baseRows` signal holds headers + users; `rows` computed signal splices in `DetailsRows` for expanded users
+   - Flattens `groups: UserGroup[]` into one `rows` computed: `[header, user, details?, header, user, ...]`
+   - `baseRows` (computed) holds headers + users and depends only on `groups`; `rows` (computed) splices in a `details` row after each expanded user, and returns `baseRows` untouched when nothing is expanded
    - Virtualizes the flat array against the real window scrollbar using `@tanstack/angular-virtual`
    - Each row has an estimated size (`estimateSize` callback); `ResizeObserver` measures real sizes and corrects estimates
 
 5. **`UserItemComponent` + `UserDetailsCardComponent`**
-   - `UserItemComponent` — stateless, collapsed row with expand button
+   - `UserItemComponent` — stateless collapsed row; the whole card is clickable and emits `toggle` (there is no separate expand button)
    - `UserDetailsCardComponent` — lazy-loaded details, cached per user, consumed via `rxResource`
 
 ### Why This Architecture
 
-- **Web Worker + Index Arrays**: Grouping/filtering 5,000 objects off-thread is fast; posting indices instead of cloned users avoids expensive serialization and keeps JSON small.
+- **Web Worker + Index Arrays**: Grouping/filtering 5,000 objects off-thread is fast; posting indices instead of cloned users avoids expensive serialization and keeps the response small.
+- **Cached, Slim Worker Payload**: The request side is optimised too. The worker keeps the last user array it received, so re-grouping/re-searching sends only `{ groupBy, search }`; users are resent only when the page changes. What is sent is a five-field projection (`UserPayload`), not whole `User` objects.
 - **Fully Flattened List**: Grouping doesn't nest `<div>` containers per group; the whole list virtualizes against the real scrollbar, not per-group boxes.
-- **Expand Inserts a Row**: Expanding doesn't resize a row via CSS animation; it inserts a sibling `DetailsRow` and removes it on collapse. Virtualization knows the array's length changed; hidden row-size changes confuse it.
+- **Expand Inserts a Row**: Expanding doesn't resize a row via CSS animation; it inserts a sibling `details` row and removes it on collapse. Virtualization knows the array's length changed; hidden row-size changes confuse it.
+- **The List Is Never Unmounted to Show Progress**: Re-grouping dims the mounted list rather than swapping it for a spinner. `@if` would destroy the virtualizer, its measured row sizes and the expanded-row set, and collapse the page height so the window scroll resets on every search.
 - **Signals + OnPush**: Every component uses `ChangeDetectionStrategy.OnPush` with signals for state. RxJS handles *async boundaries* only (HTTP, debounced input, simulated lazy fetch), not general state.
 
 ## Key Design Patterns
@@ -80,16 +82,17 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
 
 ### Search & Grouping
 
-- Search is **debounced 220ms** and **only filters at 3+ characters** to avoid rapid worker thrashing.
-- Request IDs discard stale worker/API responses, so rapid interactions can't let old results clobber new ones.
-- Worker sorting reuses one `Intl.Collator` instance per grouping operation (locale-aware comparison, no per-pair reconfiguration).
+- Search is **debounced 220ms** and **only filters at 3+ characters** to avoid rapid worker thrashing. Below the threshold the search is treated as empty rather than as a literal short prefix.
+- `GroupUsersWorkerService` tags every request with an incrementing ID and drops responses that don't match the current one, so rapid interactions can't let old results clobber new ones. Callers never see request IDs — they get a plain `Observable` that emits once.
+- Sorting uses a **single module-level `Intl.Collator`** (`{ numeric: true, sensitivity: 'base' }`), shared across every comparison in every grouping operation — not one per sort, and certainly not one per pair.
 
 ### Lazy-Loaded User Details
 
 - `randomuser.me` has no per-user endpoint; all detail fields arrive in the initial list fetch.
 - `UserDetailsService` **models a genuine lazy load**: defers building the detail view until expand, simulates latency.
-- Results cached via RxJS `shareReplay`, bounded at 200 entries (FIFO eviction) so long sessions don't grow it unboundedly.
-- `UserDetailsCardComponent` consumes via `rxResource` (@experimental in Angular 20) rather than hand-rolled effects + manual subscription cleanup.
+- Results cached via `shareReplay({ bufferSize: 1, refCount: false })` in a `Map` bounded at 200 entries (FIFO eviction) so long sessions don't grow it unboundedly. `refCount: false` is what keeps a result warm after all subscribers unsubscribe, so collapsing and re-expanding doesn't re-fetch.
+- Users with no stable id are **not** cached — a placeholder key would make them all share one entry and receive the first user's details.
+- `UserDetailsCardComponent` consumes via `rxResource` (@experimental in Angular 20) rather than hand-rolled effects + manual subscription cleanup. Because the card is mounted only while its row is expanded, construction *is* the load trigger.
 
 ### Signals vs. RxJS
 
@@ -104,12 +107,12 @@ Two-tier approach: Jest (unit/component) + Playwright (e2e).
 ### Jest
 - `jest.config.js` ignores `e2e/` so Playwright specs don't run in jsdom.
 - Setup file: `setup-jest.ts`.
-- Mock services: `users.service.stub.ts`.
+- Shared mocks and factories live in `testing.helpers.ts` (`createMockUser()`, `UsersServiceMock`, `GroupUsersWorkerServiceMock`); Web Worker mocking lives in `services/group-users-worker.test-helpers.ts`.
 - Component specs test inputs/outputs, expanded/collapsed state, and virtualization rendering logic.
 - jsdom can't run layout, so CSS-related bugs (overflow clipping, line-height assumptions) only show up in real browsers.
 
 ### Playwright
-- `e2e/app.spec.ts` tests main flows: load, group, search, expand/collapse with lazy details, pagination, error states.
+- `e2e/app.spec.ts` tests main flows: load, group by name/age/country, search, expand/collapse with lazy details, pagination, error states.
 - Intercepts `randomuser.me` and serves the repo's `MockResult` fixture (`src/app/mock-data.ts`) instead, so tests are fast and deterministic.
 - Drives a real browser against the auto-started dev server; catches layout and timing bugs jsdom misses.
 
@@ -119,6 +122,11 @@ Two-tier approach: Jest (unit/component) + Playwright (e2e).
 - `@angular/core@20` — signals (stable in 20), `rxResource` (@experimental), `OnPush` everywhere.
 - `@tanstack/angular-virtual@^6` — virtualization library (see virtualization strategy above).
 - `rxjs@7.8` — scoped to async boundaries only (HTTP, debounce, caching).
+
+**Deliberately absent** — don't reintroduce these without a real need:
+- `@angular/forms` — the search box is a `signal` in `AppComponent` bridged to the toolbar with `model()`. Reaching for `FormControl` for a single input pulls the whole package back in.
+- `@angular/router` — the app is a single view with no routes or outlet.
+- `@angular/animations` — an optional peer of `platform-browser`; nothing imports it.
 
 **Development**
 - `typescript@5.9.2` — strict mode, strict null checks.
@@ -142,24 +150,38 @@ Errors surface in `AppComponent`:
 - Worker errors → `isGrouping` set to false, `groups` cleared, error message displayed (logged with context: page, search, grouping strategy).
 - Worker runtime exceptions → caught and posted back as error responses (with stack trace) so stale request IDs don't hang the UI.
 
+**One logger call per failure.** `httpErrorInterceptor` already logs every failed request with status/method/URL, so `UsersService` deliberately does *not* catch-and-log — it lets errors propagate and `AppComponent` adds the app-level context. Adding a `catchError` back into the service would make a single network failure log three times.
+
+`LoggerService` exposes only `error()`. `warn()`/`info()` were removed as unused; add them back when something actually calls them.
+
+### Cancellation
+
+Both async paths store their `Subscription` and unsubscribe before starting the next one (`usersRequest`, `groupingRequest`), plus in `ngOnDestroy`:
+- Superseded grouping requests never emit — the service drops stale responses — so without unsubscribing they would accumulate one dead subscription per keystroke.
+- `updateGroups()`'s empty-users early return must cancel and reset `isGrouping` too, otherwise a response for the *previous* page lands afterwards and repopulates the groups that were just cleared.
+
 ### Performance Notes
 
 - Avatars use `loading="lazy"` (skip offscreen fetches) and `decoding="async"` (async image decode, don't block paint).
 - `baseRows` + `rows` split avoids rebuilding the full array on every expand/collapse.
 - TanStack's `setRenderedRange` / `setRenderedContentOffset` no-op on unchanged values, so small scroll deltas cost nothing.
+- The worker payload is a `computed`, so the five-field projection is built once per page rather than per request — and its stable array reference is what lets `GroupUsersWorkerService` decide, by identity, whether the users need resending at all.
+- Re-grouping keeps the list mounted (see `showSpinner`), preserving the virtualizer's measured row sizes and the window scroll position.
 
 ## File Structure
 
 ```
 src/app/
-├── app.component.ts                      # State container, worker lifecycle, page/search/group logic
+├── app.component.ts                      # State container, page/search/group logic
+├── app.config.ts                         # HTTP client, interceptor, global error handler
+├── testing.helpers.ts                    # createMockUser(), UsersServiceMock, worker service mock
 ├── models/
 │   ├── user.model.ts                     # User shape, mapFromUserResult()
-│   ├── grouping.model.ts                 # UserGroup, GroupBy, WorkerMessage types
+│   ├── grouping.model.ts                 # UserGroup, GroupBy, UserPayload, WorkerMessage types
 │   └── api-result.model.ts               # API response shape
 ├── services/
 │   ├── users.service.ts                  # Fetch 5,000 users/page
-│   ├── users.service.stub.ts             # Mock for tests
+│   ├── group-users-worker.service.ts     # Owns the Web Worker + stale-response filtering
 │   ├── user-details.service.ts           # Lazy details with caching
 │   ├── logger.service.ts                 # Error logging
 │   └── global-error-handler.service.ts   # Global error handler
@@ -169,13 +191,14 @@ src/app/
 │   ├── user-details-card/                # Lazy-loaded details via rxResource
 │   └── user-list-toolbar/                # Search/group/pagination controls
 ├── workers/
-│   ├── group-users.worker.ts             # Entry point, message handler
+│   ├── group-users.worker.ts             # Entry point, message handler, caches the user array
 │   ├── group-users.ts                    # filterUserIndexes(), groupUserIndexes()
 │   └── group-users.spec.ts               # Worker logic tests
-├── animations/                           # SCSS for expand/collapse
-├── interceptors/                         # API/logger setup
-├── public/
-│   └── logo.svg                          # Awork logo (displayed in README header)
-└── e2e/
-    └── app.spec.ts                       # Playwright end-to-end tests
+└── interceptors/                         # HTTP error logging
+
+public/logo.svg                           # Awork logo (project root, displayed in README header)
+e2e/app.spec.ts                           # Playwright end-to-end tests
 ```
+
+The app has no router: `app.routes.ts` and `provideRouter` were removed, along with `@angular/router`,
+`@angular/forms` and `@angular/animations`, none of which the app imports.

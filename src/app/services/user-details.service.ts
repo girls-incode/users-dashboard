@@ -44,10 +44,13 @@ export class UserDetailsService {
    * Returns `user`'s detail fields. The first call for a given `user.id` "fetches" (after a
    * simulated delay); every subsequent call for the same id replays the cached result instantly
    * and does not re-fetch, even after prior subscribers have unsubscribed (`refCount: false`).
+   *
+   * A user with no id is not cached at all. Caching it under a placeholder key would make every
+   * such user share one entry and receive the first one's details.
    */
   getDetails(user: User): Observable<UserDetails> {
-    const cacheKey = user.id || '';
-    const cached = this.cache.get(cacheKey);
+    const cacheKey = user.id;
+    const cached = cacheKey ? this.cache.get(cacheKey) : undefined;
     if (cached) {
       return cached;
     }
@@ -61,6 +64,10 @@ export class UserDetailsService {
       delay(SIMULATED_LATENCY_MS),
       shareReplay({ bufferSize: 1, refCount: false })
     );
+
+    if (!cacheKey) {
+      return request$;
+    }
 
     if (this.cache.size >= MAX_CACHE_ENTRIES) {
       const oldestKey = this.cache.keys().next().value;
