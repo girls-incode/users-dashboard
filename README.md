@@ -30,7 +30,6 @@ flowchart TD
 
     UserList -->|"one row each"| UserItem[UserItemComponent]
     UserList -->|"row inserted on expand"| DetailsCard[UserDetailsCardComponent]
-    DetailsCard -->|"lazy, cached fetch"| DetailsService[UserDetailsService]
 ```
 
 **Component breakdown:**
@@ -41,7 +40,7 @@ flowchart TD
 - **`group-users.worker.ts`** — filters, groups, and sorts off main thread; returns index arrays
 - **`UserListComponent`** — flattens groups into one virtualized list
 - **`UserItemComponent`** — stateless collapsed row; the whole card is clickable and emits `toggle`
-- **`UserDetailsCardComponent`** + **`UserDetailsService`** — lazy-loaded, cached user details
+- **`UserDetailsCardComponent`** — lazy-rendered detail panel (mounted only when expanded); displays user age, gender, username, phone
 
 ## Why This Architecture
 
@@ -53,8 +52,8 @@ flowchart TD
 | **Fully Flattened List** | Groups don't nest in separate containers; one list virtualizes against the real scrollbar (not per-group boxes) for accurate scroll positioning |
 | **Expand Inserts a Row** | Expanding inserts a sibling details row instead of resizing; virtualization knows the array length changed; CSS height changes would confuse sizing |
 | **List Stays Mounted While Re-grouping** | Re-grouping dims the list in place instead of swapping it for a spinner; unmounting would discard the virtualizer's measured row sizes and reset the window scroll on every search |
-| **Signals + OnPush Change Detection** | Every component uses `ChangeDetectionStrategy.OnPush` with signals; RxJS handles async boundaries only (HTTP, debounce, fetch), keeping signal graph simple |
-| **Lazy Details with RxJS Cache** | Simulates genuine lazy loading; `shareReplay` caches results (bounded at 200) to avoid growing memory in long sessions |
+| **Signals + OnPush Change Detection** | Every component uses `ChangeDetectionStrategy.OnPush` with signals; RxJS handles async boundaries only (HTTP, debounce), keeping signal graph simple |
+| **Details Card Mounted Only When Expanded** | The component is created fresh on expand and destroyed on collapse, so no component overhead for 5,000 unexpanded rows; details are already in memory from the initial fetch |
 
 ## Key Design Patterns
 
@@ -70,20 +69,42 @@ flowchart TD
 - **Slim payload**: `UserPayload` is an explicit five-field interface (`firstname`, `lastname`, `age`, `nat`, `country`), not `Partial<User>` — the worker never receives the email, phone, image or login hashes it has no use for
 
 ### 3. Flat Row Array with Splice-In Details
-- **Pattern**: `baseRows` computed (headers + users) + a `rows` computed that splices in `details` rows for expanded users
-- **Why splice**: Virtualization sees array length change; CSS-hidden rows confuse height estimation
-- **Why two computeds**: `baseRows` depends only on `groups`, so expanding or collapsing never rebuilds it — and with nothing expanded, `rows` returns `baseRows` untouched
+
+Users arrive grouped by country (or name/age/nationality) — each group has a header and its own users nested inside it. But the list only ever shows ~15 rows on screen at once, and the virtualizer wants one long list to scroll through, not a header with a nested block of users under it. So everything gets flattened into a single sequence first:
+
+```
+USA (header)
+  John
+  Sarah
+Canada (header)
+  Mike
+```
+→ one array: `[header, John, Sarah, header, Mike]`
+
+**Expanding a row inserts a new item — it doesn't make the row taller.** Click Sarah, and instead of her row growing, a whole new "details" entry appears right after her:
+
+```
+Before:  [ header, John, Sarah,          header, Mike ]
+After:   [ header, John, Sarah, Sarah's details, header, Mike ]
+```
+
+Why not just make her row taller? The virtualizer is constantly doing math like "row 3 starts at pixel 450, is 96px tall, so row 4 starts at pixel 546." If a row silently grows behind the scenes, that math goes stale and rows start jumping around. But inserting a new item is a completely normal operation the virtualizer already handles well — like adding a new line to a document instead of editing an existing line to be bigger.
+
+**Building this list happens in two separate steps, so clicking to expand stays cheap:**
+1. **Build the basic list** — headers + users. This only needs to happen when the actual data changes (new page, new search).
+2. **Insert a details row for whoever's expanded** — this happens on every click.
+
+Keeping these separate means expanding or collapsing a row never has to redo step 1 — the expensive part that touches all 5,000 users. It only does the cheap part: insert or remove one row. If both steps were combined, every single click would reprocess the entire list for no reason.
 
 ### 4. Debounced Input + Request IDs
 - **Pattern**: the `search` signal is bridged to RxJS with `toObservable()` + `debounceTime(220)`; each worker/API call tagged with request ID; stale responses ignored
 - **Why request IDs**: Rapid interactions (filter → clear → filter) can race; old results clobber new ones without tracking
 - **Why 3-char minimum**: below the threshold the search is treated as empty, so short prefixes that match nearly everything never reach the worker
 
-### 5. Lazy-Loaded Details with Bounded Cache
-- **Pattern**: `UserDetailsService` pipes each result through `shareReplay({ bufferSize: 1, refCount: false })` and stores the observable in a `Map` capped at 200 entries with FIFO eviction
-- **Why lazy**: Details aren't needed until expand; avoids building view models for 5,000 users upfront
-- **Why `refCount: false`**: the cached result survives all subscribers unsubscribing, so collapsing and re-expanding a row is instant rather than re-running the simulated fetch
-- **Users without a stable id are not cached** — sharing one placeholder key would hand every such user the first one's details
+### 5. Lazy-Rendered Details
+- **Pattern**: `UserDetailsCardComponent` exists in the DOM only while its row is expanded; `UserListComponent` inserts and removes the row on toggle, keeping the component unmounted until needed
+- **Why lazy**: All user details (age, gender, username, phone) arrive in the initial `randomuser.me` API fetch, so there's no async operation—just rendering deferred until expand
+- **Performance**: Avoids mounting a component for each of 5,000 rows; reduces initial render work and memory overhead
 
 ### 6. Locale-Aware Sorting with a Shared Collator
 - **Pattern**: one module-level `Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })` is reused for every comparison, in every grouping operation

@@ -55,7 +55,7 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
 
 5. **`UserItemComponent` + `UserDetailsCardComponent`**
    - `UserItemComponent` — stateless collapsed row; the whole card is clickable and emits `toggle` (there is no separate expand button)
-   - `UserDetailsCardComponent` — lazy-loaded details, cached per user, consumed via `rxResource`
+   - `UserDetailsCardComponent` — lazy-rendered detail panel (mounted only when expanded); displays age, gender, username, phone directly from the user object already in memory
 
 ### Why This Architecture
 
@@ -64,7 +64,8 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
 - **Fully Flattened List**: Grouping doesn't nest `<div>` containers per group; the whole list virtualizes against the real scrollbar, not per-group boxes.
 - **Expand Inserts a Row**: Expanding doesn't resize a row via CSS animation; it inserts a sibling `details` row and removes it on collapse. Virtualization knows the array's length changed; hidden row-size changes confuse it.
 - **The List Is Never Unmounted to Show Progress**: Re-grouping dims the mounted list rather than swapping it for a spinner. `@if` would destroy the virtualizer, its measured row sizes and the expanded-row set, and collapse the page height so the window scroll resets on every search.
-- **Signals + OnPush**: Every component uses `ChangeDetectionStrategy.OnPush` with signals for state. RxJS handles *async boundaries* only (HTTP, debounced input, simulated lazy fetch), not general state.
+- **Details Card Mounted Only When Expanded**: The component is created fresh on expand and destroyed on collapse, so no component overhead for 5,000 unexpanded rows. All detail fields are already in memory from the initial fetch.
+- **Signals + OnPush**: Every component uses `ChangeDetectionStrategy.OnPush` with signals for state. RxJS handles *async boundaries* only (HTTP, debounced input), not general state.
 
 ## Key Design Patterns
 
@@ -86,19 +87,18 @@ This is a **signals-first Angular 20 app** that loads and virtualizes a large, f
 - `GroupUsersWorkerService` tags every request with an incrementing ID and drops responses that don't match the current one, so rapid interactions can't let old results clobber new ones. Callers never see request IDs — they get a plain `Observable` that emits once.
 - Sorting uses a **single module-level `Intl.Collator`** (`{ numeric: true, sensitivity: 'base' }`), shared across every comparison in every grouping operation — not one per sort, and certainly not one per pair.
 
-### Lazy-Loaded User Details
+### Lazy-Rendered User Details
 
-- `randomuser.me` has no per-user endpoint; all detail fields arrive in the initial list fetch.
-- `UserDetailsService` **models a genuine lazy load**: defers building the detail view until expand, simulates latency.
-- Results cached via `shareReplay({ bufferSize: 1, refCount: false })` in a `Map` bounded at 200 entries (FIFO eviction) so long sessions don't grow it unboundedly. `refCount: false` is what keeps a result warm after all subscribers unsubscribe, so collapsing and re-expanding doesn't re-fetch.
-- Users with no stable id are **not** cached — a placeholder key would make them all share one entry and receive the first user's details.
-- `UserDetailsCardComponent` consumes via `rxResource` (@experimental in Angular 20) rather than hand-rolled effects + manual subscription cleanup. Because the card is mounted only while its row is expanded, construction *is* the load trigger.
+- All detail fields (age, gender, username, phone) are fetched from `randomuser.me` in the initial list load and stored in the `User` model.
+- `UserDetailsCardComponent` is mounted only when a row is expanded (inserted by `UserListComponent` into the virtualized list).
+- Since the data is already in memory, the component renders immediately without any service call or Observable pipeline.
+- Mounting only on expand avoids the overhead of creating 5,000 detail components upfront; collapsing destroys the component, freeing its resources.
 
 ### Signals vs. RxJS
 
 - **Signals** — component state, UI toggles, expanded rows, search input, grouping strategy. The app has no dependency on `@angular/forms`; the search box is a plain signal bridged to the toolbar with `model()`.
-- **RxJS** — only at async boundaries: `HttpClient`, debounced search input (via `toObservable()`), simulated detail fetch, `shareReplay` caching.
-- This keeps the signal graph simple and RxJS concerns scoped to I/O.
+- **RxJS** — only at async boundaries: `HttpClient`, debounced search input (via `toObservable()`).
+- This keeps the signal graph simple and RxJS concerns scoped to genuine I/O boundaries.
 
 ## Testing
 
@@ -119,9 +119,9 @@ Two-tier approach: Jest (unit/component) + Playwright (e2e).
 ## Dependency Notes
 
 **Runtime**
-- `@angular/core@20` — signals (stable in 20), `rxResource` (@experimental), `OnPush` everywhere.
+- `@angular/core@20` — signals (stable in 20), `OnPush` everywhere.
 - `@tanstack/angular-virtual@^6` — virtualization library (see virtualization strategy above).
-- `rxjs@7.8` — scoped to async boundaries only (HTTP, debounce, caching).
+- `rxjs@7.8` — scoped to async boundaries only (HTTP, debounce).
 
 **Deliberately absent** — don't reintroduce these without a real need:
 - `@angular/forms` — the search box is a `signal` in `AppComponent` bridged to the toolbar with `model()`. Reaching for `FormControl` for a single input pulls the whole package back in.

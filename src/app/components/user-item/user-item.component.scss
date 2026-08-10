@@ -10,22 +10,10 @@
     transition: border-color 200ms ease;
     cursor: pointer;
 
-    /*
-     * No transform-based "lift" here on purpose: this card sits directly above its own details
-     * card when expanded, with no gap between them (see UserListComponent's `gap: 0` on an
-     * expanded row) — any vertical movement here would open a seam at that shared edge.
-     * Border-color is hover feedback enough on its own, with no box movement involved.
-     */
     &:hover {
       border-color: rgba(vars.$color-blue-900, 0.35);
     }
 
-    /*
-     * `border-color` is repeated here (not just inherited from `&--expanded` below):
-     * `.user-item:hover` has higher specificity (0,2,0) than `.user-item--expanded` alone (0,1,0),
-     * so without this, hovering an expanded row would always win out and swap in the hover border
-     * color regardless of source order, making the border appear to change on hover.
-     */
     &--expanded:hover {
       border-color: rgba(vars.$color-blue-900, 0.4);
     }
@@ -92,11 +80,6 @@
     }
   }
 
-  /*
-   * Still no flex-wrap / multi-line layout at narrower widths — real DOM measurement would happily
-   * adapt to a taller wrapped row now, but a wider, denser look reads better here than a second
-   * line, so narrow viewports shrink the details column and lean on ellipsis truncation instead.
-   */
   @media (max-width: 720px) {
     .user-item {
       &__row {

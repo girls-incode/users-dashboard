@@ -3,26 +3,12 @@
 :host {
   display: block;
 
-  /*
-   * The list's own height is bound to the virtualizer's total content size — every row inside is
-   * absolutely positioned (out of normal flow) via its own `top`, so this element's natural
-   * height wouldn't otherwise reflect the full scrollable size. This is the equivalent of what
-   * CDK's virtual-scroll-viewport does internally with its spacer element, just explicit here.
-   */
+
   .user-list {
     position: relative;
     width: 100%;
   }
 
-  /*
-   * No height or min-height here on purpose — this row is sized entirely by its own content
-   * (`app-user-item`/`app-user-details-card`/`.group-header` are all self-sized from their own
-   * padding, not stretched to fill a guessed slot), so there's never a gap between the real
-   * content and the space reserved for it. `estimateSize` (see UserListComponent's `virtualizer`)
-   * only feeds the virtualizer's own internal positioning math, it never constrains this element's
-   * actual rendered box. Bottom gap is a bound `padding-bottom`, not a blanket rule, because an
-   * expanded user row's gap collapses to 0 so it sits flush against its own details row below it.
-   */
   .virtual-item {
     position: absolute;
     left: 0;
@@ -35,12 +21,6 @@
     display: block;
   }
 
-  /*
-   * Real vertical padding here (not `height: 100%` of `.virtual-item`) so this header is
-   * self-contained/naturally sized, matching how `.user-item` and `.user-details-card` are already
-   * sized from their own content + padding — none of them depend on inheriting a percentage height
-   * from an ambient parent.
-   */
   .group-header {
     margin: 0;
     display: flex;
@@ -73,11 +53,6 @@
     text-align: center;
   }
 
-  /*
-   * Still deliberately no flex-direction/wrap changes at narrower widths — not because it would
-   * break anything now (real measurement self-corrects a taller wrapped row just fine), but to
-   * keep the group header's single-line, scannable look consistent across breakpoints.
-   */
   @media (max-width: 720px) {
     .group-header {
       padding: 16px 0.9rem;

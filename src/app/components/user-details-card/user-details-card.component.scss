@@ -1,14 +1,5 @@
 @use 'ease/variables' as vars;
 
-/*
- * This card is naturally/auto sized from its own padding + the 4 rows below + their gaps + its
- * border — not forced to a parent-supplied height. `DETAILS_CONTENT_HEIGHT` in
- * user-list.component.ts is only a best-effort *initial* estimate for first paint (computed by
- * hand-summing this same padding/rows/gaps/border); the virtualizer's real DOM measurement
- * self-corrects to whatever this actually renders at, so drifting the two out of sync no longer
- * clips content or leaves dead space — it just costs a one-frame layout correction the first time
- * a given details row is measured. Still worth keeping the estimate close, to minimize that.
- */
 :host {
   display: block;
   background: vars.$color-ice;
@@ -19,12 +10,6 @@
   animation: reveal 200ms ease-out;
 }
 
-/*
- * Opacity-only on purpose, no translateY: this host mounts as a brand-new virtual-scroll row (see
- * UserListComponent's DetailsRow), and moving it during the transition would misrepresent its real
- * size to the virtualizer's `measureElement` (which reads the live rendered box), risking a
- * mid-animation flicker as it corrects.
- */
 @keyframes reveal {
   from {
     opacity: 0;
@@ -38,6 +23,7 @@
 .user-details-card {
   display: grid;
   gap: 0.75rem;
+  position: relative;
 
   &__row {
     display: grid;
@@ -56,9 +42,15 @@
     }
   }
 
+
   &__skeleton {
+    position: absolute;
+    inset: 0;
     display: grid;
     gap: 0.75rem;
+    background: vars.$color-ice;
+    animation: skeleton-fade-out 200ms ease-out 300ms forwards;
+    pointer-events: none;
   }
 
   &__skeleton-row {
@@ -82,5 +74,16 @@
 
   100% {
     background-position: 0 0;
+  }
+}
+
+@keyframes skeleton-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    visibility: hidden;
   }
 }

@@ -65,9 +65,6 @@ describe('UserListComponent', () => {
 
     expect(list.style.height).toMatch(/^\d+px$/);
     expect(items.length).toBeGreaterThan(0);
-    // No forced/min height on the row wrapper itself — each row is sized entirely by its own
-    // content (see UserItemComponent/UserDetailsCardComponent), not stretched or floored by a
-    // TanStack estimate, so there's never a gap between a row's real content and its slot.
     items.forEach(item => expect(item.style.top).toMatch(/^\d+px$/));
   });
 

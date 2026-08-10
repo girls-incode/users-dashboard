@@ -1,7 +1,8 @@
-@if (rows().length) {
+@let allRows = rows();
+@if (allRows.length) {
   <div class="user-list" [style.height.px]="virtualizer.getTotalSize()">
     @for (item of virtualizer.getVirtualItems(); track item.key) {
-      @let row = rows()[item.index];
+      @let row = allRows[item.index];
       <div
         #virtualItem
         class="virtual-item"
