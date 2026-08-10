@@ -2,6 +2,8 @@
 
 A **signals-first Angular 20 app** that loads and virtualizes a large, filterable, searchable list of ~5,000 users from randomuser.me. Features off-thread grouping via Web Worker, real-time search, pagination, and lazy-loaded expandable user details.
 
+[https://awork-users-dashboard.netlify.ap](https://awork-users-dashboard.netlify.app)
+
 <img src="public/awork-users-dashboard-filter-by-country-name.png" width="100%"/>
 
 ## Core Features
